@@ -77,6 +77,9 @@ public class ConfSpace implements Serializable {
     
     public boolean useEllipses = false;
     
+    
+    //TODO JJ 6/8/2016: This is where you want to insert the new code for adding new types of rotamers,
+    // specifically your alternate conformation rotamers.
     /** initialize a new conformational space, desomefining all its flexibility
     /*   we use one residue per position here
      *  ADD OTHER OPTIONS: WT ROTAMERS, DIFFERENT ROT WIDTHS, DEEPER, RIGID-BODY MOTIONS
