@@ -2,6 +2,7 @@ package edu.duke.cs.osprey.tests;
 
 import org.junit.Test;
 import edu.duke.cs.osprey.confspace.SearchProblem;
+import edu.duke.cs.osprey.control.AlternateConformationEnumerator;
 import edu.duke.cs.osprey.control.ConfigFileParser;
 import edu.duke.cs.osprey.control.EnvironmentVars;
 import edu.duke.cs.osprey.control.GMECFinder;
@@ -37,9 +38,9 @@ public class TestPositionSpecificGMEC extends TestCase {
     @Test
     public void testFindAlternateGMEC() throws Exception
     {
-        ResidueTemplateLibrary library = PositionSpecificRotamerLibrary.generateLibraryFromPDB(PDBFileLocation);
-        GMECFinder gf = new GMECFinder(cfp);
-        gf.calcGMEC();
+        //ResidueTemplateLibrary library = PositionSpecificRotamerLibrary.generateLibraryFromPDB(PDBFileLocation);
+		AlternateConformationEnumerator enumerator = new AlternateConformationEnumerator(cfp);
+		enumerator.run();
     }
 
 

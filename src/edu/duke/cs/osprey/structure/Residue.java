@@ -15,6 +15,7 @@ import edu.duke.cs.osprey.restypes.GenericResidueTemplateLibrary;
 import edu.duke.cs.osprey.restypes.HardCodedResidueInfo;
 import edu.duke.cs.osprey.restypes.ResTemplateMatching;
 import edu.duke.cs.osprey.restypes.ResidueTemplate;
+import edu.duke.cs.osprey.restypes.ResidueTemplateLibrary;
 import edu.duke.cs.osprey.tools.Protractor;
 import edu.duke.cs.osprey.tools.StringParsing;
 import edu.duke.cs.osprey.tools.VectorAlgebra;
@@ -140,7 +141,7 @@ public class Residue implements Serializable {
         //return if successful or not
         
         //we'll use the default ResidueTemplateLibrary (from EnvironmentVars)
-        GenericResidueTemplateLibrary templateLib = EnvironmentVars.resTemplates;
+        ResidueTemplateLibrary templateLib = EnvironmentVars.resTemplates;
         
         //first see if there are any templates matching this name
         ArrayList<ResidueTemplate> templCandidates = new ArrayList<>();
@@ -424,4 +425,10 @@ public class Residue implements Serializable {
 		}
 		return dihedrals;
     }
+    
+    public int getPDBIndex()
+    {
+    	return Integer.valueOf(fullName.substring(5,10).trim());
+    }
+    
 }

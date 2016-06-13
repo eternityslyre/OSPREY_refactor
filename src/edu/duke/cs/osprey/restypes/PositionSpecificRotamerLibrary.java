@@ -41,19 +41,43 @@ public class PositionSpecificRotamerLibrary extends ResidueTemplateLibrary {
 	private static void outputResidueTemplateInfo(Residue r)
 	{
 	}
+	
+	@Override
+    public ResidueTemplate getTemplateForMutation(String resTypeName, Residue res, boolean errorIfNone){
+        //We want to mutate res to type resTypeName.  Get the appropriate template.
+        //Currently only one template capable of being mutated to (i.e., having coordinates)
+        //is available for each residue type.  If this changes update here!
+		int index = res.getPDBIndex();
+		List<ResidueTemplate> templates = getTemplatesForDesignIndex(index).get(resTypeName);
+        for(ResidueTemplate template : templates){
+            if(template.name.equalsIgnoreCase(resTypeName)){
+                if(template.templateRes.coords!=null){
+                    //we have coordinates for templateRes, so can mutate to it
+                    return template;
+                }
+            }
+        }
+        
+        if(errorIfNone){//actually trying to mutate...throw an error if can't get a mutation
+            throw new RuntimeException("ERROR: Couldn't find a template for mutating "+res.fullName
+                    +" to "+resTypeName);
+        }
+        else//just checking if template available for mutation...return null to indicate not possible
+            return null;
+    }
 
 
 	@Override
 	public int numRotForResType(int pos, String resType, double phi, double psi) {
 		Map<String, List<ResidueTemplate>> templatesAtDesignIndex = getTemplatesForDesignIndex(pos);
-		return templatesAtDesignIndex.get(resType).size();
+		return templatesAtDesignIndex.get(resType).get(0).getNumRotamers();
 	}
 
 	@Override
 	public double getDihedralForRotamer(int pos, String resType, double phi, double psi,
 			int rotNum, int dihedralNum) {
 		Map<String, List<ResidueTemplate>> templatesAtDesignIndex = getTemplatesForDesignIndex(pos);
-		return templatesAtDesignIndex.get(resType).get(pos).getRotamericDihedrals(phi, psi, rotNum, dihedralNum);
+		return templatesAtDesignIndex.get(resType).get(0).getRotamericDihedrals(0, 0, rotNum, dihedralNum);
 	}
 
 	private Map<String, List<ResidueTemplate>> getTemplatesForDesignIndex (int pos) {
@@ -63,10 +87,10 @@ public class PositionSpecificRotamerLibrary extends ResidueTemplateLibrary {
 	}
 
 	public void addResidueTemplate (int residueIndex, String resType, ResidueTemplate allowedConformations) {
-		// TODO Auto-generated method stub
 		Map<String, List<ResidueTemplate>> templatesAtDesignIndex = getTemplatesForDesignIndex(residueIndex);
 		if(!templatesAtDesignIndex.containsKey(resType))
 			templatesAtDesignIndex.put(resType, new ArrayList<ResidueTemplate>());
 		templatesAtDesignIndex.get(resType).add(allowedConformations);
+		super.addResidueTemplate(allowedConformations);
 	}
 }

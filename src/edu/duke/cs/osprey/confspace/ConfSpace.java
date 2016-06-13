@@ -27,7 +27,9 @@ import edu.duke.cs.osprey.energy.EnergyFunction;
 import edu.duke.cs.osprey.minimization.CCDMinimizer;
 import edu.duke.cs.osprey.minimization.Minimizer;
 import edu.duke.cs.osprey.minimization.MoleculeModifierAndScorer;
+import edu.duke.cs.osprey.restypes.PositionSpecificRotamerLibrary;
 import edu.duke.cs.osprey.restypes.ResidueTemplate;
+import edu.duke.cs.osprey.restypes.ResidueTemplateLibrary;
 import edu.duke.cs.osprey.structure.Molecule;
 import edu.duke.cs.osprey.structure.PDBFileReader;
 import edu.duke.cs.osprey.structure.PDBFileWriter;
@@ -97,7 +99,7 @@ public class ConfSpace implements Serializable {
      */
     public ConfSpace(String PDBFile, ArrayList<String> flexibleRes, ArrayList<ArrayList<String>> allowedAAs, 
             boolean addWT, boolean contSCFlex, DEEPerSettings dset, ArrayList<String[]> moveableStrands, 
-            ArrayList<String[]> freeBBZones, boolean ellipses, boolean addWTRots){
+            ArrayList<String[]> freeBBZones, boolean ellipses, boolean addWTRots, boolean usePDBAlternatesAsRotamers){
     
     	useEllipses = ellipses;  	
     	
@@ -115,6 +117,10 @@ public class ConfSpace implements Serializable {
         		wtRots.set(i, ResidueTemplate.makeFromResidueConfs(res));
         	}
         }
+        ResidueTemplateLibrary rotamerLibrary = EnvironmentVars.resTemplates;
+        
+        if(usePDBAlternatesAsRotamers)
+        	rotamerLibrary = PositionSpecificRotamerLibrary.generateLibraryFromPDB(PDBFile);
         
         //Make all the degrees of freedom
         //start with proline puckers (added to res)
@@ -175,7 +181,8 @@ public class ConfSpace implements Serializable {
             BBFreeBlock curBFB = getCurBFB(bfbList,res);
             
             PositionConfSpace rcs = new PositionConfSpace(pos, res, resDOFs, allowedAAs.get(pos), contSCFlex,
-                    resStrandDOFs, perts, dset.getPertIntervals(), dset.getPertStates(pos), curBFB, useEllipses, wtRots.get(pos));
+                    resStrandDOFs, perts, dset.getPertIntervals(), dset.getPertStates(pos), curBFB, useEllipses,
+                    rotamerLibrary, wtRots.get(pos));
             posFlex.add(rcs);
                         
             if (useEllipses) {

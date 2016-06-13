@@ -51,13 +51,15 @@ public class PruningProfiling {
 		boolean useERef = false;
 		boolean addResEntropy = false;
 		boolean addWtRots = true;
+		boolean usePDBAlternatesAsRotamers = false;
 		ArrayList<String[]> moveableStrands = new ArrayList<String[]>();
 		ArrayList<String[]> freeBBZones = new ArrayList<String[]>();
 		SearchProblem search = new SearchProblem(
 			"energyMatrixProfiling",
 			"2KDC.P.forOsprey.pdb", 
 			flexRes, allowedAAs, addWt, doMinimize, useEpic, new EPICSettings(), useTupleExpansion,
-			new DEEPerSettings(), moveableStrands, freeBBZones, useEllipses, useERef, addResEntropy, addWtRots
+			new DEEPerSettings(), moveableStrands, freeBBZones, useEllipses, useERef, addResEntropy, addWtRots,
+			usePDBAlternatesAsRotamers
 		);
 		
 		// compute/read the energy matrix

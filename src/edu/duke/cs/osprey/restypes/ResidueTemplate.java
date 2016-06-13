@@ -203,6 +203,10 @@ public class ResidueTemplate implements Serializable {
         //  Therefore, we round to the closest "bin" and add numberOfPhiPsiBins/2 (to make all numbers positive)
         int phiBin = (int)(Math.round(phi/this.phiPsiResolution)) + this.numberOfPhiPsiBins/2;
         int psiBin = (int)(Math.round(psi/this.phiPsiResolution)) + this.numberOfPhiPsiBins/2;
+        if(phiBin >= rotamericDihedrals.length 
+        		|| psiBin >= rotamericDihedrals[phiBin].length
+        		|| rotNum >= rotamericDihedrals[phiBin][psiBin].length)
+        	System.out.println("About to go out of bounds.");
         return rotamericDihedrals[phiBin][psiBin][rotNum];
     }
     
@@ -306,6 +310,12 @@ public class ResidueTemplate implements Serializable {
     public void setRotamericDihedrals(double newRotamericDihedrals[][]){
         setRotamericDihedrals(newRotamericDihedrals,0,0);
      }
+    
+    @Override
+    public String toString()
+    {
+    	return name;
+    }
 
 
 }

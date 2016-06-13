@@ -36,12 +36,6 @@ public class GenericResidueTemplateLibrary extends ResidueTemplateLibrary {
     public int totalNumRotamers = 0;//total number of rotamers read in from rotamer library file(s)
     //starts at 0
     
-    HashMap<String,Double> resEntropy = new HashMap<>();//We will look up residue entropy
-    //by the name of the residue
-    
-    //the templates contain forcefield information like atom types, so they need to go with 
-    //a set of forcefield parameters
-    public ForcefieldParams ffParams;
     
     public GenericResidueTemplateLibrary(String[] templateFiles, ForcefieldParams fp){
         //create a library based on template files
@@ -311,28 +305,6 @@ public class GenericResidueTemplateLibrary extends ResidueTemplateLibrary {
     
     
     
-    public ResidueTemplate getTemplateForMutation(String resTypeName, Residue res, boolean errorIfNone){
-        //We want to mutate res to type resTypeName.  Get the appropriate template.
-        //Currently only one template capable of being mutated to (i.e., having coordinates)
-        //is available for each residue type.  If this changes update here!
-        for(ResidueTemplate template : templates){
-            if(template.name.equalsIgnoreCase(resTypeName)){
-                if(template.templateRes.coords!=null){
-                    //we have coordinates for templateRes, so can mutate to it
-                    return template;
-                }
-            }
-        }
-        
-        if(errorIfNone){//actually trying to mutate...throw an error if can't get a mutation
-            throw new RuntimeException("ERROR: Couldn't find a template for mutating "+res.fullName
-                    +" to "+resTypeName);
-        }
-        else//just checking if template available for mutation...return null to indicate not possible
-            return null;
-    }
-    
-    
     public void makeDAminoAcidTemplates(){
         //Make a D-amino acid template for every standard L-amino acid template in the library
         //This lets us do D-amino acids without having to have separate templates
@@ -390,13 +362,6 @@ public class GenericResidueTemplateLibrary extends ResidueTemplateLibrary {
         }
     }
     
-    
-    public double getResEntropy(String resType){
-        if(resEntropy.containsKey(resType.toUpperCase()))
-            return resEntropy.get(resType.toUpperCase());
-        else//default
-            return 0;
-    }
 
 
     

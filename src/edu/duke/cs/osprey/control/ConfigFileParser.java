@@ -141,7 +141,8 @@ public class ConfigFileParser {
                 params.getBool("useEllipses"),
                 params.getBool("useERef"),
                 params.getBool("AddResEntropy"),
-                params.getBool("addWTRots")
+                params.getBool("addWTRots"),
+                params.getBool("usePDBAlternatesAsRotamers")
         );
     }
     

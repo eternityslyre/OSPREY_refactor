@@ -36,6 +36,7 @@ public class PDBRotamerReader {
             Map<Character, ArrayList<double[]>> alternateResidueCoords = new HashMap<>();
 
             String curResFullName = "NONE";
+            int curIndex = -1;
 
             while(curLine!=null){
 
@@ -43,7 +44,6 @@ public class PDBRotamerReader {
                 int lineLen = curLine.length();
                 for (int i=0; i < (80-lineLen); i++)
                     curLine += " ";
-                System.out.println("Line: "+curLine);
 
                 if ( (curLine.regionMatches(true,0,"ATOM  ",0,6)) || (curLine.regionMatches(true,0,"HETATM",0,6)) ){
 
@@ -54,7 +54,6 @@ public class PDBRotamerReader {
                     {
                         String fullResName = fullResidueName(curLine);
                         int residueIndex = getResidueIndex(curLine);
-                        System.out.println("Residue "+residueIndex+", alternate "+alt);
                         
                         if( (!fullResName.equalsIgnoreCase(curResFullName)) && !curResAtoms.isEmpty() ){
 
@@ -69,16 +68,15 @@ public class PDBRotamerReader {
                                     try
                                     {
                                         boolean success = alternateConformation.assignTemplate();
-                                        System.out.println("Template assignment succeeded?:"+success);
                                         if(!success)
                                         {
-                                            System.out.println("Assignment failed.");
-                                            alternateConformation.assignTemplate();
-                                            continue;
+                                        	System.out.println("Assignment failed: Residue "+curResFullName+", alt "+c);
                                         }
-                                        m.addAlternate(residueIndex, alternateConformation);
+                                        else 
+                                        	System.out.println("Assignment succeeded: Residue "+curResFullName+", alt "+c);
+                                        m.addAlternate(curIndex, alternateConformation);
                                         //library.addRotamer(residueIndex, alternateConformation.template.name, alternateConformation);
-                                        addRotamer(residueIndex, positionSpecificRotamers,alternateConformation); 
+                                        addRotamer(curIndex, positionSpecificRotamers,alternateConformation); 
 
                                     }
                                     catch (Exception e)
@@ -97,6 +95,7 @@ public class PDBRotamerReader {
                         }
 
                         curResFullName = fullResName;
+                        curIndex = residueIndex;
 
                         readAtom(curLine,curResAtoms,curResCoords);
                         if(!alternateAtoms.containsKey(alt))
@@ -105,9 +104,6 @@ public class PDBRotamerReader {
                             alternateResidueCoords.put(alt, new ArrayList<>());
                         }
                         readAtom(curLine,alternateAtoms.get(alt),alternateResidueCoords.get(alt));
-                        System.out.println("Added atoms to "+alt+":");
-                        System.out.println(alternateAtoms.get(alt));
-                        System.out.println(alternateResidueCoords.get(alt));
 
                     }
                 }
@@ -134,7 +130,7 @@ public class PDBRotamerReader {
             e.printStackTrace();
         }
         
-        // At this point, we should conver the stored conformations into a set of position-specific
+        // At this point, we should convert the stored conformations into a set of position-specific
         // ResidueTemplates, assigning the number of rotamers, number of phipsibins, number of dihedrals,
         // and then storing each template at its appropriate position.
         for(Integer residueIndex : positionSpecificRotamers.keySet())
@@ -154,12 +150,12 @@ public class PDBRotamerReader {
         if(!positionSpecificRotamers.containsKey(residueIndex))
             positionSpecificRotamers.put(residueIndex, new HashMap<>());
         Map<String, ArrayList<Residue>> residuesAtPosition = positionSpecificRotamers.get(residueIndex);
+        if(residuesAtPosition == null || alternateConformation.template == null)
+        	System.out.println("Null value detected.");
         if(!residuesAtPosition.containsKey(alternateConformation.template.name))
             residuesAtPosition.put(alternateConformation.template.name, new ArrayList<Residue>());
         List<Residue> residuesAtPositionForAA = residuesAtPosition.get(alternateConformation.template.name);
-        residuesAtPositionForAA.add(alternateConformation);
-        System.out.println(residuesAtPosition.get(alternateConformation.template.name).size());
-        
+        residuesAtPositionForAA.add(alternateConformation);        
     }
 
     private static int getResidueIndex (String curLine) {

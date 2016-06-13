@@ -54,15 +54,16 @@ public class PositionConfSpace implements Serializable {
     public PositionConfSpace(int pos, Residue res, ArrayList<DegreeOfFreedom> resDOFs, ArrayList<String> allowedAAs, 
             boolean contSCFlex, ArrayList<DegreeOfFreedom> strandDOFs, 
             ArrayList<Perturbation> perts, ArrayList<ArrayList<double[]>> pertIntervals, 
-            ArrayList<ArrayList<int[]>> pertStates, BBFreeBlock bfb, boolean useEllipses, ResidueTemplate wtRots) {
+            ArrayList<ArrayList<int[]>> pertStates, BBFreeBlock bfb, boolean useEllipses, 
+            ResidueTemplateLibrary rotamerLibrary, ResidueTemplate wtRots) {
         
         //We'll start with just one RC for each rotamer
         //But in general there are a lot of options for RCs...
         
-        ResidueTemplateLibrary templateLib = EnvironmentVars.resTemplates;
+        ResidueTemplateLibrary templateLib = rotamerLibrary;
         this.res = res;
         designIndex = pos;
-        
+        int PDBIndex = Integer.valueOf(res.getPDBResNumber());
         
         if(pertStates==null){//no DEEPer flexibility...
             pertStates = new ArrayList<>();
@@ -95,7 +96,7 @@ public class PositionConfSpace implements Serializable {
             
         	//	Compute phi and psi, necessary for backbone dependent rotamers.        
         	double[] phipsi = Protractor.getPhiPsi(this.res);
-            int numRot = templateLib.numRotForResType(designIndex, AAType, phipsi[0], phipsi[1]);
+            int numRot = templateLib.numRotForResType(PDBIndex, AAType, phipsi[0], phipsi[1]);
             
             //resDOFs is all sidechain DOFs, for now
             ArrayList<DegreeOfFreedom> dofListForRot = new ArrayList<>();
@@ -127,7 +128,7 @@ public class PositionConfSpace implements Serializable {
                     	// get rotamer dihedrals
 						double[] dihedrals = new double[numDihedrals];
 						for(int i=0; i<numDihedrals; i++) {
-							dihedrals[i] = templateLib.getDihedralForRotamer(designIndex, AAType, phipsi[0], phipsi[1], rot, i);
+							dihedrals[i] = templateLib.getDihedralForRotamer(PDBIndex, AAType, phipsi[0], phipsi[1], rot, i);
 						}
 						
                         createRC(dihedrals, AAType, null, rot, contSCFlex, dofListForRot, -1, strandDOFs, 

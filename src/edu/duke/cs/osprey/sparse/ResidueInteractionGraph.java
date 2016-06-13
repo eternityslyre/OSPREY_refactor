@@ -1,5 +1,9 @@
 package edu.duke.cs.osprey.sparse;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,13 +22,14 @@ import edu.duke.cs.osprey.energy.EnergyFunction;
 import edu.duke.cs.osprey.minimization.CCDMinimizer;
 import edu.duke.cs.osprey.minimization.MoleculeModifierAndScorer;
 import edu.duke.cs.osprey.structure.Molecule;
+import edu.duke.cs.osprey.structure.PDBFileWriter;
 import edu.duke.cs.osprey.structure.Residue;
 
 public class ResidueInteractionGraph {
 	
 	Set<Integer> vertices = new HashSet<>();
 	Map<Integer,Set<Integer>> adjacencyMatrix = new HashMap<>();
-	double distanceCutoff = 100; // distance cutoff, in angstroms
+	double distanceCutoff = 7; // distance cutoff, in angstroms
 	double energyCutoff = 0; // energy cutoff, in kcal/mol
 	
 	public ResidueInteractionGraph()
@@ -73,6 +78,15 @@ public class ResidueInteractionGraph {
 		adjacencyMatrix.get(min).add(max);
 	}
 	
+	public void pruneEdge(int v1, int v2)
+	{
+		int min = Math.min(v1,v2);
+		int max = Math.max(v1, v2);
+		if(!adjacencyMatrix.containsKey(min))
+			adjacencyMatrix.put(min, new HashSet<>());
+		adjacencyMatrix.get(min).remove(max);
+	}
+	
 	public boolean connected(int source, int target)
 	{
 		int min = Math.min(source,target);
@@ -98,15 +112,16 @@ public class ResidueInteractionGraph {
 		for(int i =0; i < vertices.size(); i++)
 		{
 			Residue resi = conformations.posFlex.get(i).res;
+			double maxEnergy = Double.NEGATIVE_INFINITY;
+			double minEnergy = Double.POSITIVE_INFINITY;
+			double minDistance = Double.POSITIVE_INFINITY;
 			for(int j = 0; j < conformations.posFlex.get(i).RCs.size(); j++)
 			{
-				RC residueConfi = conformations.posFlex.get(i).RCs.get(j);
 				for(int k = i+1; k < vertices.size(); k++)
 				{
 					Residue resj = conformations.posFlex.get(k).res;
 					for(int l = 0; l < conformations.posFlex.get(k).RCs.size(); l++)
 					{
-						RC residueConfj = conformations.posFlex.get(k).RCs.get(l);
 						RCTuple conformationTuple = new RCTuple(i,j,k,l);
 						MoleculeModifierAndScorer mof = new MoleculeModifierAndScorer(termE,conformations,conformationTuple);
 
@@ -122,23 +137,26 @@ public class ResidueInteractionGraph {
 
 			            double pairwiseEnergy = mof.getValue(bestDOFVals);
 			            double distance = resi.distanceTo(resj);
-			            System.out.println("Energy of ("+i+"-"+j+","+k+"-"+l+"):"+pairwiseEnergy);
-			            System.out.println("Distance between ("+i+"-"+j+","+k+"-"+l+"):"+distance);
+			            minDistance = Math.min(distance, minDistance);
+			            maxEnergy = Math.max(pairwiseEnergy,maxEnergy);
+			            minEnergy = Math.min(pairwiseEnergy, minEnergy);
+			            //System.out.println("Energy of ("+i+"-"+j+","+k+"-"+l+"):"+pairwiseEnergy);
+			            //System.out.println("Distance between ("+i+"-"+j+","+k+"-"+l+"):"+distance);
+			            	
+					}
+					double energyBounds = maxEnergy - minEnergy;
+					if(energyBounds < energyCutoff || minDistance > distanceCutoff)
+					{
+						System.out.println("Pruning edge ("+i+","+k+")");
+						pruneEdge(i,k);
 					}
 				}
 			}
+
 		}
 				
 	}
 	
-	private void applyResidueConformation(RC conformation)
-	{
-		for(int i = 0; i < conformation.DOFmin.size(); i++)
-		{
-			double middle = (conformation.DOFmin.get(i) + conformation.DOFmax.get(i))/2;
-			conformation.DOFs.get(i).apply(middle);
-		}
-	}
 	
 	public void setMutableResidues(Set<Integer> residues)
 	{
@@ -157,6 +175,36 @@ public class ResidueInteractionGraph {
 				if(i!=j)
 					addEdge(i,j);
 			}
+		}
+	}
+
+	public void writeGraph (String outputFileName) {
+		// TODO Auto-generated method stub
+		try
+		{
+			FileOutputStream fileOutputStream = new FileOutputStream(outputFileName);
+			BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(
+					fileOutputStream);
+			PrintStream printStream = new PrintStream(bufferedOutputStream);
+
+
+			for(Integer i : adjacencyMatrix.keySet())
+			{
+				for(Integer j : adjacencyMatrix.get(i))
+				{
+					printStream.println("("+i+","+j+")");
+				}
+			}
+			printStream.close();
+		}        
+		catch (IOException e) {
+			System.out.println("ERROR: An io exception occurred while writing file "+outputFileName);
+			System.exit(0);
+		}
+		catch ( Exception e ){
+			System.out.println(e.toString());
+			System.out.println("ERROR: An exception occurred while writing file");
+			System.exit(0);
 		}
 	}
 

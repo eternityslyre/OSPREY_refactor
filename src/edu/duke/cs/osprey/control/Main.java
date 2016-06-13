@@ -126,6 +126,19 @@ public class Main {
 				ci.outputConfInfo();
 			}
 		});
+		
+		commands.put("computeAlternates",
+				new Runnable()
+		{
+			@Override
+			public void run() {
+				AlternateConformationEnumerator enumerator = new AlternateConformationEnumerator(cfp);
+				enumerator.run();
+			}
+
+		});
+		
+		
 	}
 
 	// TODO: Move these into a test file, and just call it from the test.

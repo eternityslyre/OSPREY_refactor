@@ -1,10 +1,20 @@
 package edu.duke.cs.osprey.restypes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import edu.duke.cs.osprey.energy.forcefield.ForcefieldParams;
+import edu.duke.cs.osprey.structure.Residue;
 
 public abstract class ResidueTemplateLibrary {
 
 	public ArrayList<ResidueTemplate> templates = new ArrayList<>();
+	
+    //the templates contain forcefield information like atom types, so they need to go with 
+    //a set of forcefield parameters
+    public ForcefieldParams ffParams;
+    
+    HashMap<String,Double> resEntropy = new HashMap<>();//We will look up residue entropy
+    //by the name of the residue
 
 	public ResidueTemplateLibrary() {
 	}
@@ -62,4 +72,33 @@ public abstract class ResidueTemplateLibrary {
 	{
 		templates.add(template);
 	}
+	
+    public ResidueTemplate getTemplateForMutation(String resTypeName, Residue res, boolean errorIfNone){
+        //We want to mutate res to type resTypeName.  Get the appropriate template.
+        //Currently only one template capable of being mutated to (i.e., having coordinates)
+        //is available for each residue type.  If this changes update here!
+        for(ResidueTemplate template : templates){
+            if(template.name.equalsIgnoreCase(resTypeName)){
+                if(template.templateRes.coords!=null){
+                    //we have coordinates for templateRes, so can mutate to it
+                    return template;
+                }
+            }
+        }
+        
+        if(errorIfNone){//actually trying to mutate...throw an error if can't get a mutation
+            throw new RuntimeException("ERROR: Couldn't find a template for mutating "+res.fullName
+                    +" to "+resTypeName);
+        }
+        else//just checking if template available for mutation...return null to indicate not possible
+            return null;
+    }
+    
+    public double getResEntropy(String resType){
+        if(resEntropy.containsKey(resType.toUpperCase()))
+            return resEntropy.get(resType.toUpperCase());
+        else//default
+            return 0;
+    }
+    
 }
