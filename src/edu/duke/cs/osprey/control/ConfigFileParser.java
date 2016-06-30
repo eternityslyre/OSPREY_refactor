@@ -33,7 +33,7 @@ public class ConfigFileParser {
         
         //check format of args
         if(!args[0].equalsIgnoreCase("-c"))
-            throw new RuntimeException("ERROR: bad arguments (should start with -c)");
+            throw new RuntimeException("ERROR: unrecognized arguments. Arguments should start be: -c {Program configuration file} {command} {System configuration files}");
         
         params.addParamsFromFile(args[1]);//KStar.cfg file
         EnvironmentVars.setDataDir(params.getValue("DataDir"));
