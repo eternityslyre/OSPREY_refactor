@@ -548,4 +548,5 @@ public class ConfTree<T extends AStarNode> extends AStarTree<T> {
         //if we get here, conf fully defined
         return emat.getInternalEnergy( new RCTuple(partialConf) );
     }
+    
 }

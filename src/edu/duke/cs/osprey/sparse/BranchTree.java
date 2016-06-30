@@ -10,30 +10,24 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.LinkedHashSet;
 import java.util.StringTokenizer;
+import edu.duke.cs.osprey.confspace.SearchProblem;
 import edu.duke.cs.osprey.structure.Molecule;
 public class BranchTree {
 	
 	ResidueInteractionGraph G;
 	private edu.duke.cs.osprey.sparse.TreeNode root;
 	
-	public BranchTree(String fName, Molecule m, int numUnprunedRot[], int molResidueMap[], int invResidueMap[], int sysStrandNum, int numResInAS, boolean ligPresent){
+	public BranchTree(String fName, SearchProblem problem){
 		
-		int numV = numResInAS;
-		if (ligPresent) //ligand is present
-			numV++;
+		int numV = problem.confSpace.numPos;
 		
 		G = new ResidueInteractionGraph();
 		
-		readBranchDecomposition(fName, m, numUnprunedRot, molResidueMap, invResidueMap, sysStrandNum);
-		
-		System.out.print("Num unpruned rot: ");
-		for (int i=0; i<numUnprunedRot.length; i++)
-			System.out.print(numUnprunedRot[i]+" ");
-		System.out.println();
+		readBranchDecomposition(fName, problem.confSpace.m);
 	}
 
 	//Read the branch decomposition from file fName
-	private void readBranchDecomposition(String fName, Molecule m, int numUnprunedRot[], int molResidueMap[], int invResidueMap[], int sysStrandNum){
+	private void readBranchDecomposition(String fName, Molecule m){
 		
 		BufferedReader bufread = null;
 		try {
@@ -96,11 +90,11 @@ public class BranchTree {
 				teM.add(m.getResByPDBResNumber(getToken(str,j+1)).indexInMolecule);
 			}
 			
-			te[i] = new TreeEdge(teNode1, teNode2, teM, numUnprunedRot, molResidueMap, invResidueMap, sysStrandNum, false);
+			//te[i] = new TreeEdge(teNode1, teNode2, teM, numUnprunedRot, molResidueMap, invResidueMap, sysStrandNum, false);
 		}
 
 		//Transform the branch decomposition into a rooted tree
-		transformRootedTree(tn, te, numUnprunedRot, molResidueMap, invResidueMap, sysStrandNum);
+		//transformRootedTree(tn, te, numUnprunedRot, molResidueMap, invResidueMap, sysStrandNum);
 		
 		try { bufread.close(); } catch(Exception e){} //done, so close file for reading
 	}

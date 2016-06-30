@@ -39,17 +39,23 @@ public class ResTemplateMatching {
     
     public ResTemplateMatching(Residue res, ResidueTemplate template){
         //compute the best matching
-        
+        if(res.fullName.contains("GLU"))
+        	System.out.println("Checking GLU...");
         this.res = res;
         this.template = template;
         
         score = Double.POSITIVE_INFINITY;//start without any good matching found
         
         ArrayList<Atom> templateAtoms = template.templateRes.atoms;
-        numAtoms = templateAtoms.size();
+        numAtoms = Math.min(res.atoms.size(),templateAtoms.size());
         
-        if( res.atoms.size() != numAtoms ){//matching impossible: not even number of atoms matches
-            return;
+        
+        boolean enforceFullAtomMatching = true;
+        if( res.atoms.size() != numAtoms){//matching impossible: not even number of atoms matches
+        	System.out.println("Atom count mismatch for "+res+".");
+        	if(!enforceFullAtomMatching)
+            	return;
+        	System.out.println("Applying closest rotamer...");
         }
         
         //initialize search
@@ -196,7 +202,7 @@ public class ResTemplateMatching {
         
         //copy atoms from template
         ArrayList<Atom> newAtoms = new ArrayList<>();
-        for(int atNum=0; atNum<numAtoms; atNum++){
+        for(int atNum=0; atNum<template.templateRes.atoms.size(); atNum++){
             Atom newAtom = template.templateRes.atoms.get(atNum).copy();
             newAtom.res = res;
             newAtoms.add(newAtom);
