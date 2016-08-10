@@ -28,16 +28,17 @@ import edu.duke.cs.osprey.tests.UnitTestSuite;
 public class Main {
 
 	public static Map<String, Runnable> commands;
-
-	private static final String usageString = "Command expects arguments "
-			+ "(e.g. -c KStar.cfg {findGMEC|fcalcKStar} System.cfg DEE.cfg";
+    private static final String usageString = "Incorrect arguments. Command expects arguments "
+                + "(e.g. -c KStar.cfg {findGMEC|fcalcKStar} System.cfg DEE.cfg";
 
 	public static void main(String[] args){
 		//args expected to be "-c KStar.cfg command config_file_1.cfg ..."
 
-
-		if(args.length < 3)
-		{
+		String command = "";
+		try{
+                    command = args[2];
+		}
+		catch(Exception e){
 			System.out.println(usageString);
 			System.exit(1);
 		}
@@ -144,7 +145,6 @@ public class Main {
 			}
 
 		});
-
 
 	}
 
