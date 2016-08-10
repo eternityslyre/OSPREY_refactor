@@ -34,16 +34,15 @@ public class Main {
 	public static void main(String[] args){
 		//args expected to be "-c KStar.cfg command config_file_1.cfg ..."
 
-		String command = "";
-		try{
-                    command = args[2];
-		}
-		catch(Exception e){
+
+		if(args.length < 3)
+		{
 			System.out.println(usageString);
 			System.exit(1);
 		}
+	
+		String command = args[2];	
 
-		String command = args[2];
 		long startTime = System.currentTimeMillis();
 		ConfigFileParser cfp = new ConfigFileParser(args);//args 1, 3+ are configuration files
 
