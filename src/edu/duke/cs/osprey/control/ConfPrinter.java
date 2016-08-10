@@ -5,6 +5,7 @@
  */
 package edu.duke.cs.osprey.control;
 
+import edu.duke.cs.osprey.confspace.RC;
 import edu.duke.cs.osprey.confspace.SearchProblem;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -67,6 +68,11 @@ public class ConfPrinter {
             confFileHandle.write("ROTS: ");
             for(int pos=0; pos<searchSpace.confSpace.numPos; pos++){
                 int rotNum = searchSpace.confSpace.posFlex.get(pos).RCs.get(conf[pos]).rotNum;
+                if(rotNum < 0)
+                {
+                	RC conf2 = searchSpace.confSpace.posFlex.get(pos).RCs.get(conf[pos]);
+                	System.out.println("Negative rotamer.");
+                }
                 System.out.print( rotNum + " " );
                 confFileHandle.write( rotNum + " " );
             }

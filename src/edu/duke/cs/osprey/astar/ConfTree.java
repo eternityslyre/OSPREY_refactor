@@ -2,6 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
+/**
+ * TODO: 
+ * 1. Remove the top comment, starting with "To change this template", since
+ *  	it's useless to everyone who isn't using netbeans. 
+ * 2. I'm not sure this class needs to keep and store the EnergyMatrix, which it seems to use 
+ * 		exactly twice. It might be convenient but it's cleaner to separate the scoring 
+ * 		from the search state object anyway. 
+ */
 package edu.duke.cs.osprey.astar;
 
 import java.math.BigInteger;

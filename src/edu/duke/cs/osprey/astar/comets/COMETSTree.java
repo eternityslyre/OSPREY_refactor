@@ -215,6 +215,7 @@ public class COMETSTree extends AStarTree<FullAStarNode> {
         //for each state
         //If a state has no viable conformations, leave it null, with stateUB[state] = inf
         
+		//TODO: These initalizations most certainly belong in the constructure of COMETSNode and not out here...
         node.stateTrees = new ConfTree[numStates];
         node.stateUB = new double[numStates];
         

@@ -39,23 +39,24 @@ public class ResTemplateMatching {
     
     public ResTemplateMatching(Residue res, ResidueTemplate template){
         //compute the best matching
-        if(res.fullName.contains("GLU"))
-        	System.out.println("Checking GLU...");
+        if(res.fullName.contains("PHE A   5"))
+        	System.out.println("Checking PHE...");
         this.res = res;
         this.template = template;
         
         score = Double.POSITIVE_INFINITY;//start without any good matching found
         
         ArrayList<Atom> templateAtoms = template.templateRes.atoms;
-        numAtoms = Math.min(res.atoms.size(),templateAtoms.size());
+        numAtoms = templateAtoms.size();
         
         
         boolean enforceFullAtomMatching = true;
-        if( res.atoms.size() != numAtoms){//matching impossible: not even number of atoms matches
+        if( res.atoms.size() != templateAtoms.size()){//matching impossible: not even number of atoms matches
         	System.out.println("Atom count mismatch for "+res+".");
-        	if(!enforceFullAtomMatching)
+        	if(enforceFullAtomMatching)
             	return;
         	System.out.println("Applying closest rotamer...");
+        	numAtoms = Math.min(res.atoms.size(),templateAtoms.size());
         }
         
         //initialize search

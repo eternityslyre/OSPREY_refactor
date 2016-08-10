@@ -3,6 +3,27 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
+/**
+ * TODO: 
+ * 1. Remove the top comment, starting with "To change this template", since
+ *  	it's useless to everyone who isn't using netbeans. 
+ * 2. Replace any and all instances of default access modifiers with public and static,
+ * 		unless you really specifically want classes to share variables only within a package,
+ * 		and there's no other way to share the few variables you want to share.
+ * 3. COMETSDoer is written like an entirely separate program. It takes all the arguments
+ * 		Main takes and then runs independently of it. This causes duplicate code and ouput
+ * 		("if(!args[0].equalsIgnoreCase("-c"))" appears here too), and if you want it to 
+ * 		be a separate program do that. Otherwise, you should pull as many arguments as you 
+ * 		can out of it, create a function (and object, maybe) which knows what to look for,
+ * 		and have Main call that, then pass COMETSDoer a COMETSParams object instead.
+ * 4. "("ERROR: COMETS requires LUTE to do continuous flexibility.");" is not an actionable
+ * 		error. Users will see the error and have no idea what they did to get themselves
+ * 		into this state. An explanation as to how to turn off COMETs and how to turn on LUTE
+ * 		(so they can choose what to do) is missing.
+ * 5. Consider replacing "System.out.println();System.out.println("Text");System.out.println();"
+ * 		calls with "System.out.print("\nText\n\n");). It's something of an eyesore to me.
+ */
 package edu.duke.cs.osprey.control;
 
 import edu.duke.cs.osprey.astar.comets.COMETSTree;
@@ -72,7 +93,7 @@ class COMETSDoer {
         
         SearchProblem[] stateSP = new SearchProblem[numStates];    
 
-        
+        // TODO: Consider replacing blank println() calls with "\n" unless all you're printing is really just a blank line...
         System.out.println();
         System.out.println("Preparing matrices and search problems for multistate A*");
         System.out.println();
@@ -141,7 +162,7 @@ class COMETSDoer {
         SearchProblem searchProb = stateCFGP.getSearchProblem();
 
         if ( stateCFGP.params.getBool("doMinimize") && (!searchProb.useTupExpForSearch) ) {
-            throw new RuntimeException("ERROR: COMETS requires LUTE to do continuous flexibility");
+            throw new RuntimeException("ERROR: COMETS requires LUTE to do continuous flexibility.");
         }
         
         precomputeMatrices(state, stateCFGP, searchProb);

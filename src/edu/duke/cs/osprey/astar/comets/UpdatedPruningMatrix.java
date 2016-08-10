@@ -8,7 +8,7 @@ package edu.duke.cs.osprey.astar.comets;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
+import edu.duke.cs.osprey.confspace.ConfSpace;
 import edu.duke.cs.osprey.confspace.HigherTupleFinder;
 import edu.duke.cs.osprey.confspace.RCTuple;
 import edu.duke.cs.osprey.pruning.PruningMatrix;
@@ -51,6 +51,37 @@ public class UpdatedPruningMatrix extends PruningMatrix {
     }
     
     
+    public void assignAAToPosition(String assignedAAType, int posAtState, ConfSpace confSpace)
+    {
+
+    	for(int rc : parent.unprunedRCsAtPos(posAtState)){
+    		String rcAAType = confSpace.posFlex.get(posAtState).RCs.get(rc).AAType;
+
+    		if( ! rcAAType.equalsIgnoreCase(assignedAAType)){
+    			markAsPruned(new RCTuple(posAtState,rc));
+    		}
+    	}
+    }
+    
+    public void assignRCTuple(RCTuple rcs)
+    {
+    	for(int pos: rcs.pos)
+    	{
+    		int rc = rcs.RCs.get(pos);
+    		assignRCToPosition(rc, pos);
+    	}
+    }
+    
+    public void assignRCToPosition(int rcAssignment, int position)
+    {
+    	for(int rc : parent.unprunedRCsAtPos(position)){
+
+    		if(rc != rcAssignment){
+    			markAsPruned(new RCTuple(position,rc));
+    		}
+    	}
+    }
+
     
     @Override
     public void markAsPruned(RCTuple tup){

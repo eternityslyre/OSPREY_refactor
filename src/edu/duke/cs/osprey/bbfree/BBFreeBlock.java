@@ -3,6 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
+/**
+ * TODO: 
+ * 1. Remove the top comment, starting with "To change this template", since
+ *  	it's useless to everyone who isn't using netbeans. 
+ * 2. Give BBFreeBlock a better name. I'd recommend just spelling it out,
+ * 		it's not that inconvenient and if it's the name of a class it's 
+ * 		bset to keep it instantly recognizable.
+ */
 package edu.duke.cs.osprey.bbfree;
 
 import cern.colt.matrix.DoubleFactory1D;

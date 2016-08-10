@@ -2,6 +2,27 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
+/**
+ * TODO: 
+ * 1. Remove the top comment, starting with "To change this template", since
+ *  	it's useless to everyone who isn't using netbeans. 
+ * 2. Think about why exactly we have "wildcardDefaults." There is almost certainly
+ * 		a smarter way to format the mutation list. I recommend the following:
+ * 
+ * 		resAllowed[PDBIndex] ALA GLY LEU
+ * 
+ * 		This would replace all of the following parameters:
+ * 		1) strandMutNums, 2) resAllowed, and 3) strandMut
+ * 		As it stands these are three inconveniently parallelized arrays.
+ * 		By the same reasoning, I recommend we replace strandRotTrans[StrandIndex] [true|false]
+ * 		With "rotateAndTranslateStrands [StrandIndex] [StrandIndex]"
+ * 3. I would prefer the type of each parameter and its default are specified in defaults.cfg
+ * 		instead of being an attempted typecasting during code execution. This moves the type mismatch
+ * 		failure into the compilation phase instead of execution and also requires
+ * 		that future parameters be defined appropriately. (It also gets rid of the 4 functions, which
+ * 		seem like clutter to me.)
+ */
 package edu.duke.cs.osprey.control;
 
 //This class stores parameters from input files
@@ -129,31 +150,28 @@ public class ParamSet implements Serializable {
         //If there is none there either, this is an error
         
 	public String getValue(String paramName){
-            
-            paramName = paramName.toUpperCase();
-            String val = params.get(paramName);
-            
-            if(val==null){
-                val = defaultParams.get(paramName);
-                
-                if(val==null){//See if this is a wildcard param
-                    for(String wildcard : wildcardDefaults.keySet()){
-                        if(paramName.startsWith(wildcard)){
-                            val = wildcardDefaults.get(wildcard);
-                            break;
-                        }
-                    }
-                }
-                
-                if(val==null)//still null
-                    throw new RuntimeException("ERROR: Parameter "+paramName+" not found");
 
-                MPIMaster.printIfMaster("Parameter "+paramName+" not set. Using default value "+val);
-            }
-            else
-                MPIMaster.printIfMaster("Parameter "+paramName+" set to "+val);
-            
-            return val.trim();
+		paramName = paramName.toUpperCase();
+		String val = null;
+		if(params.containsKey(paramName)){
+			val = params.get(paramName).trim();
+			MPIMaster.printIfMaster("Parameter "+paramName+" set to "+val);
+			return val;
+		}
+		if(defaultParams.containsKey(paramName)){
+			val = defaultParams.get(paramName).trim();
+			MPIMaster.printIfMaster("Parameter "+paramName+" not set. Using default value "+val);
+			return val;
+		}
+
+		for(String wildcard : wildcardDefaults.keySet()){
+			if(paramName.startsWith(wildcard)){
+				return wildcardDefaults.get(wildcard).trim();
+			}
+		}
+
+		// Parameter not matched. Code termination.
+		throw new RuntimeException("ERROR: Parameter "+paramName+" not found");
 	}
         
         

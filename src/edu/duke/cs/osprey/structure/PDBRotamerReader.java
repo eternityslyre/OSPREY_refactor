@@ -57,7 +57,6 @@ public class PDBRotamerReader {
                         
                         if( (!fullResName.equalsIgnoreCase(curResFullName)) && !curResAtoms.isEmpty() ){
 
-                            
 
                             for(char c: alternateAtoms.keySet())
                             {

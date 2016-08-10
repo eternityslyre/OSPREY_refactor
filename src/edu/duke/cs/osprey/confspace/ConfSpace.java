@@ -2,6 +2,22 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
+/**
+ * TODO: 
+ * 1. Remove the top comment, starting with "To change this template", since
+ *  	it's useless to everyone who isn't using netbeans. 
+ * 2. Remove all dead code, such as commented out code. People after you 
+ * 		will never be sure it's safe to delete, so delete it now and
+ * 		add it back with version control if you have to.
+ * 3. Starting from here, most of the "useEllipses" code branches
+ * 		need to be integrated more intelligently. There are just a bunch of 
+ * 		"if(useEllipses)" code injections which will make it really hard to
+ * 		track fixes and changes to elliptical rotamer code.
+ * 4. Give BBFreeBlock a better name. I'd recommend just spelling it out,
+ * 		it's not that inconvenient and if it's the name of a class it's 
+ * 		bset to keep it instantly recognizable.
+ */
 package edu.duke.cs.osprey.confspace;
 
 import java.io.Serializable;
@@ -37,16 +53,16 @@ import edu.duke.cs.osprey.structure.Residue;
 import edu.duke.cs.osprey.tools.StringParsing;
 
 /**
- *
+ *	This class represents the conformational search space for a design
+ *	used for GMEC-based design, K*, or anything else we want to do with a conformational space
+ *	This class just defines the conformational space itself (the molecule + all kinds of flexibility
+ *	and possible mutations, and how these are represented as RCs, etc.)
+ *	This class can be put in an AnnotatedConfSpace to add annotations like what RCs are pruned,
+ *	what their pairwise energies are, etc.  
  * @author mhall44
  */
 public class ConfSpace implements Serializable {
-    //This class represents the conformational search space for a design
-    //used for GMEC-based design, K*, or anything else we want to do with a conformational space
-    //This class just defines the conformational space itself (the molecule + all kinds of flexibility
-    //and possible mutations, and how these are represented as RCs, etc.)
-    //This class can be put in an AnnotatedConfSpace to add annotations like what RCs are pruned,
-    //what their pairwise energies are, etc.  
+
     
     public Molecule m;
     //The molecule will be composed of residues. 
@@ -80,8 +96,6 @@ public class ConfSpace implements Serializable {
     public boolean useEllipses = false;
     
     
-    //TODO JJ 6/8/2016: This is where you want to insert the new code for adding new types of rotamers,
-    // specifically your alternate conformation rotamers.
     /** initialize a new conformational space, desomefining all its flexibility
     /*   we use one residue per position here
      *  ADD OTHER OPTIONS: WT ROTAMERS, DIFFERENT ROT WIDTHS, DEEPER, RIGID-BODY MOTIONS
@@ -112,7 +126,6 @@ public class ConfSpace implements Serializable {
         List<ResidueTemplate> wtRots = new ArrayList<>(Collections.nCopies(numPos, null));
         if (addWTRots) {
         	for (int i=0; i<numPos; i++) {
-        		// TODO: support alternate conformations?
         		Residue res = m.getResByPDBResNumber(flexibleRes.get(i));
         		wtRots.set(i, ResidueTemplate.makeFromResidueConfs(res));
         	}

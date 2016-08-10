@@ -2,6 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
+/**
+ * TODO: 
+ * 1. Remove the top comment, starting with "To change this template", since
+ *  	it's useless to everyone who isn't using netbeans. Other than that this class is small 
+ *	    and pretty clean.
+ */
 package edu.duke.cs.osprey.control;
 
 import edu.duke.cs.osprey.energy.LigandResEnergies;
@@ -21,38 +28,29 @@ import edu.duke.cs.osprey.tests.UnitTestSuite;
 public class Main {
 
 	public static Map<String, Runnable> commands;
-        
-        private static final String usageString = "Command expects arguments "
-                + "(e.g. -c KStar.cfg {findGMEC|fcalcKStar} System.cfg DEE.cfg";
+
+	private static final String usageString = "Command expects arguments "
+			+ "(e.g. -c KStar.cfg {findGMEC|fcalcKStar} System.cfg DEE.cfg";
 
 	public static void main(String[] args){
 		//args expected to be "-c KStar.cfg command config_file_1.cfg ..."
 
-		debuggingCommands(args);
 
-		String command = "";
-		try{
-                    command = args[2];
-		}
-		catch(Exception e){
+		if(args.length < 3)
+		{
 			System.out.println(usageString);
 			System.exit(1);
 		}
 
-
-
+		String command = args[2];
 		long startTime = System.currentTimeMillis();
-
 		ConfigFileParser cfp = new ConfigFileParser(args);//args 1, 3+ are configuration files
 
-                EnvironmentVars.openSpecialWarningLogs(cfp);
+		EnvironmentVars.openSpecialWarningLogs(cfp);
 
 		//load data files
 		cfp.loadData();
 
-
-
-		//DEBUG!!
 		// set number of threads for energy function evaluation
 		MultiTermEnergyFunction.setNumThreads( cfp.params.getInt("eEvalThreads") );
 
@@ -61,14 +59,23 @@ public class Main {
 		if(commands.containsKey(command))
 			commands.get(command).run();
 		else
-			throw new RuntimeException("ERROR: OSPREY command unrecognized: "+command);
-                
-                EnvironmentVars.closeSpecialWarningLogs();
-                
+			throw new RuntimeException("ERROR: Not a valid OSPREY command: "
+					+command+". Please check spelling and refer to the  manual for usage.");
+
+		EnvironmentVars.closeSpecialWarningLogs();
+
 		long endTime = System.currentTimeMillis();
 		System.out.println("Total OSPREY execution time: " + ((endTime-startTime)/60000) + " minutes.");
 		System.out.println("OSPREY finished");
 	}
+
+
+	/**
+	 * Command initialization class. All new commands should be added here, rather than as
+	 * a branch of an if/else tree.
+	 * @param args arguments passed in during main function call. 
+	 * @param cfp ConfigurationFileParser.
+	 */
 
 	private static void initCommands(String[] args, ConfigFileParser cfp) {
 		// TODO Auto-generated method stub
@@ -126,7 +133,7 @@ public class Main {
 				ci.outputConfInfo();
 			}
 		});
-		
+
 		commands.put("computeAlternates",
 				new Runnable()
 		{
@@ -137,68 +144,11 @@ public class Main {
 			}
 
 		});
-		
-		
-	}
 
-	// TODO: Move these into a test file, and just call it from the test.
-	private static void debuggingCommands(String[] args){
-
-		//MolecEObjFunction mof = (MolecEObjFunction)ObjectIO.readObject("OBJFCN1442697734046.dat", true);
-		/*MolecEObjFunction mof = (MolecEObjFunction)ObjectIO.readObject("OBJFCN1442697735769.dat", true);
-
-        CCDMinimizer minim = new CCDMinimizer(mof, false);
-        DoubleMatrix1D bestVals = minim.minimize();
-        double E = mof.getValue(bestVals);
-
-        DoubleMatrix1D boxBottom = bestVals.copy();
-        DoubleMatrix1D boxTop = bestVals.copy();
-        for(int q=0; q<bestVals.size(); q++){
-            boxTop.set(q, Math.min(mof.getConstraints()[1].get(q), bestVals.get(q)+1));
-            boxBottom.set(q, Math.max(mof.getConstraints()[0].get(q), bestVals.get(q)-1));
-        }
-
-        for(int a=0; a<1000000; a++){
-
-            DoubleMatrix1D x2 = bestVals.like();
-            for(int q=0; q<bestVals.size(); q++)
-                x2.set( q, boxBottom.get(q)+Math.random()*(boxTop.get(q)-boxBottom.get(q)) );
-
-            double E2 = mof.getValue(x2);
-            if(E2 < E-0.1){
-                System.out.println("gg");
-                DoubleMatrix1D dx = x2.copy();
-                dx.assign( bestVals, Functions.minus );
-
-                for(double t=1; true; t*=1.5){
-                    dx.assign(Functions.mult(t));
-                    x2.assign(dx);
-                    x2.assign(bestVals, Functions.plus);
-
-                    boolean oor = false;
-                    for(int q=0; q<x2.size(); q++){
-                        if( x2.get(q) > mof.getConstraints()[1].get(q) )
-                            oor = true;
-                        else if( x2.get(q) < mof.getConstraints()[0].get(q) )
-                            oor = true;
-                    }
-
-                    if(oor)
-                        break;
-
-                    E2= mof.getValue(x2);
-                    int aaa = 1;
-                }
-            }
-        }
-
-        System.exit(0);
-		 */
-		//anything we want to try as an alternate main function, for debugging purposes
-		//likely will want to exit after doing this (specify here)
-		//for normal operation, leave no uncommented code in this function
 
 	}
+
+
 
 
 }

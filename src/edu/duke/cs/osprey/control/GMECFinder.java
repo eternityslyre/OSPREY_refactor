@@ -2,6 +2,18 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
+/**
+ * TODO: 
+ * 1. Remove the top comment, starting with "To change this template", since
+ *  	it's useless to everyone who isn't using netbeans. 
+ * 2. Encapsulate all energy-related terms and classes: useEPIC, useTupExp, 
+ * 		fullEConfOnly, and so on should be consolidated into a class
+ * 		that provides the correct energies when called.
+ * 3. Consider simpler designs for lowestPairwiseBound, which reuses existing code
+ * 		but also introduces cyclic dependencies in the design graph. It seems only 
+ * 		to depend on the energy terms mentioned in 2.
+ */
 package edu.duke.cs.osprey.control;
 
 import java.io.BufferedWriter;
@@ -122,9 +134,6 @@ public class GMECFinder {
             needToRepeat = false;
             
             //initialize a search problem with current Ival
-            // 11/11/2015 JJ: This logic belongs out here. A function that does nothing if a flag is false should 
-            // have its flag promoted outside of the function, unless it's used multiple times. In that case
-            // the function needs to be named accordingly.
             if(useEPIC)
                 checkEPICThresh2(curInterval);//Make sure EPIC thresh 2 matches current interval
 
