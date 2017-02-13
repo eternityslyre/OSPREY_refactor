@@ -3,7 +3,9 @@ package edu.duke.cs.osprey.control;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import edu.duke.cs.osprey.astar.ConfTree;
 import edu.duke.cs.osprey.astar.PairwiseConfTree;
 import edu.duke.cs.osprey.confspace.ConfSearch;
@@ -29,6 +31,8 @@ public class AlternateConformationEnumerator {
 	SearchProblem searchSpace;
 	private double lowestBound;
 
+	private ArrayList<Map<String, Integer>> altCodeMap;
+
 	public AlternateConformationEnumerator (ConfigFileParser config) {
 
 		//fill in all the settings
@@ -49,21 +53,21 @@ public class AlternateConformationEnumerator {
 
 	public void run () {
 		// TODO Auto-generated method stub
-		calcGMEC();
+		enumerateConformations();
 	}
 
-    ConfSearch initSearch(SearchProblem searchSpace){
-        //initialize some kind of combinatorial search, like A*
-        //FOR NOW just using A*; may also want BWM*, WCSP, or something according to settings
-    	ConfTree<?> tree;
-    	if (searchSpace.searchNeedsHigherOrderTerms()) {
-    		tree = ConfTree.makeFull(searchSpace);
-    	} else {
-    		tree = new PairwiseConfTree(searchSpace);
-    	}
-    	tree.initProgress(searchSpace.confSpace.numPos);
-    	return tree;
-    }
+	ConfSearch initSearch(SearchProblem searchSpace){
+		//initialize some kind of combinatorial search, like A*
+		//FOR NOW just using A*; may also want BWM*, WCSP, or something according to settings
+		ConfTree<?> tree;
+		if (searchSpace.searchNeedsHigherOrderTerms()) {
+			tree = ConfTree.makeFull(searchSpace);
+		} else {
+			tree = new PairwiseConfTree(searchSpace);
+		}
+		tree.initProgress(searchSpace.confSpace.numPos);
+		return tree;
+	}
 
 	double getConfEnergy(int[] conf){
 
@@ -81,8 +85,10 @@ public class AlternateConformationEnumerator {
 	}
 
 
-	public double calcGMEC(){
-		//Calculate the GMEC
+	public double enumerateConformations(){
+		//Enumerate conformations
+
+		altCodeMap = new ArrayList<>();
 
 		double curInterval = I0;//For iMinDEE.  curInterval will need to be an upper bound
 		//on GMEC-lowestBound
@@ -93,7 +99,7 @@ public class AlternateConformationEnumerator {
 		int GMECConf[] = null;
 		double bestESoFar = Double.POSITIVE_INFINITY;
 
-		
+
 
 		BufferedWriter confFileHandle = openConfFile();
 
@@ -117,14 +123,14 @@ public class AlternateConformationEnumerator {
 			double lowerBound;
 			int conformationCount=0;
 
-            System.out.println();
-            System.out.println("BEGINNING CONFORMATION ENUMERATION");
-            try {
-            	System.out.println("\tsearching " + search.getNumConformations().floatValue() + " conformations...");
-            } catch (UnsupportedOperationException ex) {
-            	// conf tree doesn't support it, no big deal
-            }
-            System.out.println();
+			System.out.println();
+			System.out.println("BEGINNING CONFORMATION ENUMERATION");
+			try {
+				System.out.println("\tsearching " + search.getNumConformations().floatValue() + " conformations...");
+			} catch (UnsupportedOperationException ex) {
+				// conf tree doesn't support it, no big deal
+			}
+			System.out.println();
 
 			long confSearchStartTime = System.currentTimeMillis();
 
@@ -164,6 +170,13 @@ public class AlternateConformationEnumerator {
 
 					printConf(conf,confE,lowerBound,bestESoFar,confFileHandle,conformationCount);
 					conformationCount++;
+
+					boolean outputConfs = true;
+					int maxConfs = 50;
+					if(outputConfs && conformationCount < maxConfs)
+					{
+						searchSpace.outputMinimizedStruct( conf, searchSpace.name+"."+conformationCount+".pdb" );
+					}
 				}
 
 
@@ -208,6 +221,7 @@ public class AlternateConformationEnumerator {
 			double confSearchTimeMinutes = (System.currentTimeMillis()-confSearchStartTime)/60000.0;
 			System.out.println("Conf search time (minutes): "+confSearchTimeMinutes);
 
+
 		} while(needToRepeat);
 
 		if(outputGMECStruct && GMECConf!=null)
@@ -217,6 +231,9 @@ public class AlternateConformationEnumerator {
 		System.out.println("GMEC calculation complete.  ");
 
 		System.out.println("GMEC energy: "+bestESoFar);
+		
+
+		printAlternateStats();
 		return bestESoFar;
 	}
 
@@ -243,32 +260,32 @@ public class AlternateConformationEnumerator {
 					+ confFileName + e.getMessage());
 		}
 	}
-	
-    private void fullConfOnlyTupExp(){
-        //precompute the tuple expansion
-        if(!useTupExp)
-            throw new RuntimeException("ERROR: Need tuple expansion to handle full-conf-only E-function");
-        if(useEPIC)//later consider using differencing scheme to do EPIC for these
-            throw new RuntimeException("ERROR: EPIC for full-conf-only E-function not yet supported");
-        if(doIMinDEE)//don't have concept of pairwise lower bound, so not doing iMinDEE 
-            //(can just do rigid pruning on tup-exp matrix, even if using cont flex)
-            throw new RuntimeException("ERROR: iMinDEE + full-conf-only E-function not supported");
-        
-        
-        //Let's compute a matrix from the pairwise terms (no P-B), to use in selecting triples
-        searchSpace.loadEnergyMatrix();
-        
-        //initialize pruning matrix.  Nothing pruned yet because don't have pairwise energies
-        searchSpace.pruneMat = new PruningMatrix(searchSpace.confSpace,Ew);//not iMinDEE
-        
-        //We can only do steric pruning
-        double stericThresh = cfp.params.getDouble("STERICTHRESH");
-        Pruner pruner = new Pruner(searchSpace, false, 0, 0, false, false);
-        pruner.pruneSteric(stericThresh);
-                
-        searchSpace.loadTupExpEMatrix();
-    }
-    
+
+	private void fullConfOnlyTupExp(){
+		//precompute the tuple expansion
+		if(!useTupExp)
+			throw new RuntimeException("ERROR: Need tuple expansion to handle full-conf-only E-function");
+		if(useEPIC)//later consider using differencing scheme to do EPIC for these
+			throw new RuntimeException("ERROR: EPIC for full-conf-only E-function not yet supported");
+		if(doIMinDEE)//don't have concept of pairwise lower bound, so not doing iMinDEE 
+			//(can just do rigid pruning on tup-exp matrix, even if using cont flex)
+			throw new RuntimeException("ERROR: iMinDEE + full-conf-only E-function not supported");
+
+
+		//Let's compute a matrix from the pairwise terms (no P-B), to use in selecting triples
+		searchSpace.loadEnergyMatrix();
+
+		//initialize pruning matrix.  Nothing pruned yet because don't have pairwise energies
+		searchSpace.pruneMat = new PruningMatrix(searchSpace.confSpace,Ew);//not iMinDEE
+
+		//We can only do steric pruning
+		double stericThresh = cfp.params.getDouble("STERICTHRESH");
+		Pruner pruner = new Pruner(searchSpace, false, 0, 0, false, false);
+		pruner.pruneSteric(stericThresh);
+
+		searchSpace.loadTupExpEMatrix();
+	}
+
 
 	void precomputeMatrices(double pruningInterval){
 		//Precalculate TupleMatrices needed for GMEC computation.  Some of these may already be computed.  
@@ -355,33 +372,33 @@ public class AlternateConformationEnumerator {
 			System.out.println("Finished post-tup-exp pruning.");
 		}
 	}
-	
-    double lowestPairwiseBound(SearchProblem prob){
-        //In an EPIC calculation, our enumeration will probably include much less conformations,
-        //but for iMinDEE purposes we still need to know what our lowest bound would have been
-        //if we enumerated w/o EPIC (i.e., what is the minimum energy calculated using the lower-bound energy matrix)
-        
-        System.out.println();
-        System.out.println("Calculating no-EPIC lowest energy bound");
-        
-        SearchProblem probNoEPIC = new SearchProblem(prob);//shallow copy
-        probNoEPIC.useEPIC = false;
-        probNoEPIC.useTupExpForSearch = false;
-        
-        ConfSearch searchNoEPIC = initSearch(probNoEPIC);
-        int LBConf[] = searchNoEPIC.nextConf();//lowest conf for this search
-        
-        double LB = Double.POSITIVE_INFINITY;
-        if(LBConf != null)
-            LB = probNoEPIC.lowerBound(LBConf);
-        
-        System.out.println("No-EPIC lowest energy bound: "+LB);
-        System.out.println();
-        
-        return LB;
-    }
 
-    
+	double lowestPairwiseBound(SearchProblem prob){
+		//In an EPIC calculation, our enumeration will probably include much less conformations,
+		//but for iMinDEE purposes we still need to know what our lowest bound would have been
+		//if we enumerated w/o EPIC (i.e., what is the minimum energy calculated using the lower-bound energy matrix)
+
+		System.out.println();
+		System.out.println("Calculating no-EPIC lowest energy bound");
+
+		SearchProblem probNoEPIC = new SearchProblem(prob);//shallow copy
+		probNoEPIC.useEPIC = false;
+		probNoEPIC.useTupExpForSearch = false;
+
+		ConfSearch searchNoEPIC = initSearch(probNoEPIC);
+		int LBConf[] = searchNoEPIC.nextConf();//lowest conf for this search
+
+		double LB = Double.POSITIVE_INFINITY;
+		if(LBConf != null)
+			LB = probNoEPIC.lowerBound(LBConf);
+
+		System.out.println("No-EPIC lowest energy bound: "+LB);
+		System.out.println();
+
+		return LB;
+	}
+
+
 
 	void printConf(int[] conf, double confE, double lowerBound, double bestESoFar, 
 			BufferedWriter confFileHandle, int confCount ){
@@ -415,6 +432,20 @@ public class AlternateConformationEnumerator {
 			System.out.println();
 
 
+			System.out.println("Alt Codes: ");
+			confFileHandle.write("ROTS: ");
+			String altCodeString = "";
+			for(int pos=0; pos<searchSpace.confSpace.numPos; pos++){
+				String altCode = searchSpace.confSpace.posFlex.get(pos).RCs.get(conf[pos]).altCode;
+				System.out.print( altCode + " " );
+				confFileHandle.write( altCode + " " );
+				altCodeString = altCodeString + altCode + " ";
+
+				updateAltCodeCount(searchSpace.confSpace.posFlex.get(pos).res.getPDBIndex(), altCode);
+			}
+			System.out.println();
+
+
 			String energyStatement = "Lower bound/enumeration energy: "+lowerBound+" Energy: "+confE+" Best so far: "+bestESoFar;
 			//Lower bound/enumeration energy is what we enumerate in order of
 			//(either a lower bound on the actual energy, or the same as Energy)
@@ -426,22 +457,51 @@ public class AlternateConformationEnumerator {
 
 			confFileHandle.write(energyStatement);
 			confFileHandle.newLine();
+			
 		}
 		catch(IOException e){
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		}
 	}
-	
-	   private void checkEPICThresh2(double curInterval){
-	        if(curInterval+Ew>searchSpace.epicSettings.EPICThresh2){//need to raise EPICThresh2 
-	            //to the point that we can guarantee no continuous component of the GMEC
-	            //or desired ensemble will need to reach it
-	            System.out.println("Raising EPICThresh2 to "+(curInterval+Ew)+" based on "
-	                    + "iMinDEE interval and energy window");
-	            searchSpace.epicSettings.EPICThresh2 = curInterval+Ew;
-	        }
-	    }
-	    
+
+	private void printAlternateStats () {
+		for(int residueIndex = 0; residueIndex < altCodeMap.size(); residueIndex++)
+		{
+			Map<String, Integer> codeCounts = altCodeMap.get(residueIndex);
+			int total = 0;
+			for(String code : codeCounts.keySet())
+			{
+				total += codeCounts.get(code);
+			}
+			total = Math.max(1, total);
+			for(String code : codeCounts.keySet())
+			{
+				
+				//System.out.println(residueIndex+"-"+"("+code+")"+": "+codeCounts.get(code)+"/"+total+"="+(1.0*codeCounts.get(code)/total));
+				System.out.println(residueIndex+","+"("+code+")"+", "+codeCounts.get(code)+","+total+","+(1.0*codeCounts.get(code)/total));
+			}
+		}
+		
+	}
+
+	private void updateAltCodeCount (int residueIndex, String altCodeString) {
+		while(altCodeMap.size() <= residueIndex)
+			altCodeMap.add(new HashMap<>());
+		if(!altCodeMap.get(residueIndex).containsKey(altCodeString))
+			altCodeMap.get(residueIndex).put(altCodeString,0);
+		altCodeMap.get(residueIndex).put(altCodeString, altCodeMap.get(residueIndex).get(altCodeString)+1);
+	}
+
+	private void checkEPICThresh2(double curInterval){
+		if(curInterval+Ew>searchSpace.epicSettings.EPICThresh2){//need to raise EPICThresh2 
+			//to the point that we can guarantee no continuous component of the GMEC
+			//or desired ensemble will need to reach it
+			System.out.println("Raising EPICThresh2 to "+(curInterval+Ew)+" based on "
+					+ "iMinDEE interval and energy window");
+			searchSpace.epicSettings.EPICThresh2 = curInterval+Ew;
+		}
+	}
+
 
 }

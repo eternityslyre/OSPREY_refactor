@@ -30,6 +30,7 @@ public class ResidueTemplate implements Serializable {
 
 
     public String name;//e.g. ARG
+    public String altCodes[] = {"None"}; // Debug term used to identify alternate WT conformations
 
     //"standard" residue
     //info from here will mostly be copied into any residue in the structure to which this template is assigned
@@ -78,12 +79,14 @@ public class ResidueTemplate implements Serializable {
 		
 		// measure the dihedrals for all conformations
 		double[][] dihedrals = new double[residues.size()][newTemplate.numDihedrals];
+		newTemplate.altCodes = new String[residues.size()];
 		for (int i=0; i<residues.size(); i++) {
 			Residue res = residues.get(i);
 			assert (res.template == oldTemplate);
 			for (int j=0; j<res.getNumDihedrals(); j++) {
 				dihedrals[i][j] = res.getDihedralAngle(j);
 			}
+			newTemplate.altCodes[i] = "WT"+res.alternateCode;
 		}
 		newTemplate.setRotamericDihedrals(dihedrals);
 		newTemplate.computeDihedralMovingAtoms();

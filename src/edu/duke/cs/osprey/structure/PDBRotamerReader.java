@@ -64,6 +64,7 @@ public class PDBRotamerReader {
                                 {
                                     Residue alternateConformation = new Residue(alternateAtoms.get(c), 
                                             alternateResidueCoords.get(c), curResFullName, m);
+                                    alternateConformation.alternateCode = c;
                                     try
                                     {
                                         boolean success = alternateConformation.assignTemplate();
@@ -134,6 +135,8 @@ public class PDBRotamerReader {
         // and then storing each template at its appropriate position.
         for(Integer residueIndex : positionSpecificRotamers.keySet())
         {
+        	if(residueIndex < 3)
+        		System.out.println("Break.");
             for(String resType : positionSpecificRotamers.get(residueIndex).keySet())
             {
             	List<Residue> residues = positionSpecificRotamers.get(residueIndex).get(resType);

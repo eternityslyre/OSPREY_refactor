@@ -79,6 +79,10 @@ public class Atom implements Serializable {
         return ans;
     }
     
+    public String toString()
+    {
+    	return name;
+    }
     
     public void addBond(Atom atom2){
         //add a bond between this and atom2

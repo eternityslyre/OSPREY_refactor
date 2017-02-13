@@ -131,7 +131,7 @@ public class PositionConfSpace implements Serializable {
 							dihedrals[i] = templateLib.getDihedralForRotamer(PDBIndex, AAType, phipsi[0], phipsi[1], rot, i);
 						}
 						
-                        createRC(dihedrals, AAType, null, rot, contSCFlex, dofListForRot, -1, strandDOFs, 
+                        createRC(dihedrals, AAType, templateLib.getTemplateForMutation(AAType, res, false), rot, contSCFlex, dofListForRot, -1, strandDOFs, 
                                 bfb, pertState, perts, pertIntervals, AATypeUsesEllipses);
                     }
                 }
@@ -181,6 +181,8 @@ public class PositionConfSpace implements Serializable {
         addDEEPerDOFs(pertState, perts, pertIntervals, dofListForRC, dofLB, dofUB);
         
         RC newRC = new RC(AAType, template, rot, dofListForRC, dofLB, dofUB, RCs.size());
+        if(template != null)
+        newRC.altCode = template.altCodes[rot];
         
         RCs.add(newRC);
         

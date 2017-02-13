@@ -39,8 +39,8 @@ public class ResTemplateMatching {
     
     public ResTemplateMatching(Residue res, ResidueTemplate template){
         //compute the best matching
-        if(res.fullName.contains("PHE A   5"))
-        	System.out.println("Checking PHE...");
+        if(res.fullName.contains("LEU A  22"))
+        	System.out.println("Checking LEU...");
         this.res = res;
         this.template = template;
         

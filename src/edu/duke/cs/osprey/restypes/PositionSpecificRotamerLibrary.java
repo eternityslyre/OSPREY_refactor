@@ -93,4 +93,8 @@ public class PositionSpecificRotamerLibrary extends ResidueTemplateLibrary {
 		templatesAtDesignIndex.get(resType).add(allowedConformations);
 		super.addResidueTemplate(allowedConformations);
 	}
+	
+	public void addRotamer(int residueIndex, String resType, Residue alternateConformation)	{
+		
+	}
 }

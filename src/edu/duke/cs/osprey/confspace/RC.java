@@ -21,6 +21,7 @@ public class RC implements Serializable {
     public String AAType;//amino-acid type
     public ResidueTemplate template; // RC-specific template, null means use template library
     public int rotNum;//rotamer number (same library, for the given AAType, or refers to this.template when set)
+    public String altCode = "  ?";
     
     //bounds on degrees of freedom
     //some of these are defined by the AAType and rotNum
