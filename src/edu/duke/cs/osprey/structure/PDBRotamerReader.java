@@ -40,6 +40,7 @@ public class PDBRotamerReader {
 			boolean readingAlternate = false;
 
 			while(curLine!=null){
+				
 
 				// First pad line to 80 characters
 				int lineLen = curLine.length();
@@ -60,9 +61,11 @@ public class PDBRotamerReader {
 
 					if(readingAlternate && (!fullResName.equalsIgnoreCase(curResFullName)) && !curResAtoms.isEmpty() ){
 
-
+						boolean assignedOneAlternate = false;
 						for(char c: alternateAtoms.keySet())
 						{
+							if(c == ' ')
+								continue;
 							if(alternateAtoms.get(c).size() > 0)
 							{
 								ArrayList<Atom> residueAtoms = new ArrayList<>();
@@ -76,6 +79,10 @@ public class PDBRotamerReader {
 								Residue alternateConformation = new Residue(residueAtoms, 
 										residueCoords, curResFullName, m);
 								alternateConformation.alternateCode = c;
+								if(curResFullName.contains("SER A  33"))
+								{
+									System.out.println("Break.");
+								}
 								try
 								{
 									boolean success = alternateConformation.assignTemplate();
@@ -84,7 +91,10 @@ public class PDBRotamerReader {
 										System.out.println("Assignment failed: Residue "+curResFullName+", alt "+c);
 									}
 									else 
+									{
 										System.out.println("Assignment succeeded: Residue "+curResFullName+", alt "+c);
+										assignedOneAlternate = true;
+									}
 									m.addAlternate(curIndex, alternateConformation);
 									//library.addRotamer(residueIndex, alternateConformation.template.name, alternateConformation);
 									addRotamer(curIndex, positionSpecificRotamers,alternateConformation); 
@@ -100,6 +110,13 @@ public class PDBRotamerReader {
 							alternateAtoms.put(c, new ArrayList<>());
 							alternateResidueCoords.put(c,new ArrayList<>());
 						}
+						if(!assignedOneAlternate){
+							System.err.println("Could not assign any alternates of "+curResFullName+". Terminating.");
+							System.exit(-1);
+						}
+						
+						alternateAtoms.put(' ', new ArrayList<>());
+						alternateResidueCoords.put(' ',new ArrayList<>());
 
 						curResAtoms = new ArrayList<>();
 						curResCoords = new ArrayList<>();

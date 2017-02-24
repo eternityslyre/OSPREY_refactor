@@ -39,12 +39,7 @@ public class ResTemplateMatching {
     
     public ResTemplateMatching(Residue res, ResidueTemplate template){
         //compute the best matching
-        if(res.fullName.contains("LEU A  22"))
-        {
-        	System.out.println("Checking LEU...");
-        	if(res.atoms.size()< 19)
-        		System.out.println("Too few atoms:"+res.atoms.size());
-        }
+
         this.res = res;
         this.template = template;
         
