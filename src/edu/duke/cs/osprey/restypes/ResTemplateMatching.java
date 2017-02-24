@@ -40,7 +40,11 @@ public class ResTemplateMatching {
     public ResTemplateMatching(Residue res, ResidueTemplate template){
         //compute the best matching
         if(res.fullName.contains("LEU A  22"))
+        {
         	System.out.println("Checking LEU...");
+        	if(res.atoms.size()< 19)
+        		System.out.println("Too few atoms:"+res.atoms.size());
+        }
         this.res = res;
         this.template = template;
         
@@ -52,12 +56,13 @@ public class ResTemplateMatching {
         
         boolean enforceFullAtomMatching = true;
         if( res.atoms.size() != templateAtoms.size()){//matching impossible: not even number of atoms matches
-        	System.out.println("Atom count mismatch for "+res+".");
+        	System.out.println("Atom count mismatch for "+res+":"+res.atoms.size()+"!="+templateAtoms.size());
         	if(enforceFullAtomMatching)
             	return;
         	System.out.println("Applying closest rotamer...");
         	numAtoms = Math.min(res.atoms.size(),templateAtoms.size());
         }
+        else System.out.println("Matched "+res+" to "+template.templateRes);
         
         //initialize search
         matching = new int[templateAtoms.size()];
