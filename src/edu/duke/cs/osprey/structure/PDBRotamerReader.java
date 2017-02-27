@@ -87,11 +87,6 @@ public class PDBRotamerReader {
 											residueCoords, curResFullName, m);
 									alternateConformation.alternateCode = c;
 									
-									System.out.println("Atoms for "+curResFullName+", Alt "+curAlt+":");
-									for(Atom a : residueAtoms)
-									{
-										System.out.println(a);
-									}
 										
 									if(curResFullName.contains("LEU A  19"))
 									{

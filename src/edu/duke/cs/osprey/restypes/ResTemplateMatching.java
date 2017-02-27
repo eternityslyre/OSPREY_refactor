@@ -51,13 +51,13 @@ public class ResTemplateMatching {
         
         boolean enforceFullAtomMatching = true;
         if( res.atoms.size() != templateAtoms.size()){//matching impossible: not even number of atoms matches
-        	System.out.println("Atom count mismatch for "+res+":"+res.atoms.size()+"!="+templateAtoms.size());
+        	//System.out.println("Atom count mismatch for "+res+":"+res.atoms.size()+"!="+templateAtoms.size());
         	if(enforceFullAtomMatching)
             	return;
         	System.out.println("Applying closest rotamer...");
         	numAtoms = Math.min(res.atoms.size(),templateAtoms.size());
         }
-        else System.out.println("Matched "+res+" to "+template.templateRes);
+       // else System.out.println("Matched "+res+" to "+template.templateRes);
         
         //initialize search
         matching = new int[templateAtoms.size()];
