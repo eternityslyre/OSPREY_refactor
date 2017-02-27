@@ -70,6 +70,11 @@ public class PositionSpecificRotamerLibrary extends ResidueTemplateLibrary {
 	@Override
 	public int numRotForResType(int pos, String resType, double phi, double psi) {
 		Map<String, List<ResidueTemplate>> templatesAtDesignIndex = getTemplatesForDesignIndex(pos);
+		if(!templatesAtDesignIndex.containsKey(resType))
+			return -1;
+		ResidueTemplate firstTemplate = templatesAtDesignIndex.get(resType).get(0);
+		if(firstTemplate == null)
+			return -1;
 		return templatesAtDesignIndex.get(resType).get(0).getNumRotamers();
 	}
 
