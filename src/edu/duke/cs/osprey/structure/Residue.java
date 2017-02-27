@@ -148,9 +148,7 @@ public class Residue implements Serializable {
         ArrayList<ResidueTemplate> templCandidates = new ArrayList<>();
         
         String templateName = HardCodedResidueInfo.getTemplateName(this);
-        if(this.fullName.contains("LEU A  22 "))
-        		//||this.fullName.contains("GLU A  15 "))
-        	System.out.println("Hoo-rah.");
+
         //Residues will usually have a template name that's the first three residue of their full name,
         //but there are a few exceptions
         
