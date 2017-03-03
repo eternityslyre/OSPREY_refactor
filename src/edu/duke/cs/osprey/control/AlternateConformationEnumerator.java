@@ -323,6 +323,7 @@ public class AlternateConformationEnumerator {
 
 		//Doing competitor pruning now
 		//will limit us to a smaller, but effective, set of competitors in all future DEE
+		/*
 		if(searchSpace.competitorPruneMat == null){
 			System.out.println("PRECOMPUTING COMPETITOR PRUNING MATRIX");
 			PruningControl compPruning = cfp.setupPruning(searchSpace,0,false,false);
@@ -332,6 +333,7 @@ public class AlternateConformationEnumerator {
 			searchSpace.pruneMat = null;
 			System.out.println("COMPETITOR PRUNING DONE");
 		}
+		*/
 
 
 		//Next, do DEE, which will fill in the pruning matrix

@@ -271,6 +271,9 @@ public class Pruner {
             if (candpos.contains(posWit)) {
             	continue;
             }
+            
+            if(posWit == 46)
+            	System.out.println("no unpruned rots.");
 
 			pruneMat.unprunedRCsAtPos(unprunedRCs, posWit);
 

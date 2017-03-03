@@ -164,4 +164,9 @@ public class RCTuple implements Serializable {
         
         return new RCTuple(newPos,newRCs);
     }
+    
+    public String toString()
+    {
+    	return "("+pos+"):["+RCs+"]";
+    }
 }

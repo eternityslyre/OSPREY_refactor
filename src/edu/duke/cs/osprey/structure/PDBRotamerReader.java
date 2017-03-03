@@ -68,61 +68,7 @@ public class PDBRotamerReader {
 						if(readingAlternate)
 						{
 
-							boolean assignedOneAlternate = false;
-							for(char c: alternateAtoms.keySet())
-							{
-								if(c == ' ')
-									continue;
-								if(alternateAtoms.get(c).size() > 0)
-								{
-									ArrayList<Atom> residueAtoms = new ArrayList<>();
-									residueAtoms.addAll(alternateAtoms.get(c));
-									if(alternateAtoms.get(' ') != null)
-										residueAtoms.addAll(alternateAtoms.get(' '));
-									ArrayList<double[]> residueCoords = new ArrayList<>();
-									residueCoords.addAll(alternateResidueCoords.get(c));
-									if(alternateResidueCoords.get(' ') != null)
-										residueCoords.addAll(alternateResidueCoords.get(' '));
-									Residue alternateConformation = new Residue(residueAtoms, 
-											residueCoords, curResFullName, m);
-									alternateConformation.alternateCode = c;
-									
-										
-									if(curResFullName.contains("LEU A  19"))
-									{
-										System.out.println("Break.");
-									}
-									try
-									{
-										boolean success = alternateConformation.assignTemplate();
-										if(!success)
-										{
-											System.out.println("Assignment failed: Residue "+curResFullName+", alt "+c);
-										}
-										else 
-										{
-											System.out.println("Assignment succeeded: Residue "+curResFullName+", alt "+c);
-											assignedOneAlternate = true;
-										}
-										m.addAlternate(curIndex, alternateConformation);
-										//library.addRotamer(residueIndex, alternateConformation.template.name, alternateConformation);
-										addRotamer(curIndex, positionSpecificRotamers,alternateConformation); 
-
-									}
-									catch (Exception e)
-									{
-										e.printStackTrace();
-									}
-
-
-								}
-								alternateAtoms.put(c, new ArrayList<>());
-								alternateResidueCoords.put(c,new ArrayList<>());
-							}
-							if(!assignedOneAlternate){
-								System.err.println("Could not assign any alternates of "+curResFullName+". Terminating.");
-								System.exit(-1);
-							}
+							assignAlternate(m, positionSpecificRotamers, alternateAtoms, alternateResidueCoords, curResFullName, curIndex);
 						}
 						
 						alternateAtoms.put(' ', new ArrayList<>());
@@ -157,6 +103,7 @@ public class PDBRotamerReader {
 			if( ! curResAtoms.isEmpty() ){
 				Residue newRes = new Residue( curResAtoms, curResCoords, curResFullName, m );
 				m.appendResidue(newRes);
+				assignAlternate(m, positionSpecificRotamers, alternateAtoms, alternateResidueCoords, curResFullName, curIndex);
 			}
 
 
@@ -184,6 +131,62 @@ public class PDBRotamerReader {
 				library.addResidueTemplate(residueIndex, resType, ResidueTemplate.makeFromResidueConfs(residues));
 			}
 
+		}
+	}
+
+	private static void assignAlternate (Molecule m, Map<Integer, Map<String, ArrayList<Residue>>> positionSpecificRotamers,
+			Map<Character, ArrayList<Atom>> alternateAtoms, Map<Character, ArrayList<double[]>> alternateResidueCoords, String curResFullName,
+			int curIndex) {
+		boolean assignedOneAlternate = false;
+		for(char c: alternateAtoms.keySet())
+		{
+			if(c == ' ')
+				continue;
+			if(alternateAtoms.get(c).size() > 0)
+			{
+				ArrayList<Atom> residueAtoms = new ArrayList<>();
+				residueAtoms.addAll(alternateAtoms.get(c));
+				if(alternateAtoms.get(' ') != null)
+					residueAtoms.addAll(alternateAtoms.get(' '));
+				ArrayList<double[]> residueCoords = new ArrayList<>();
+				residueCoords.addAll(alternateResidueCoords.get(c));
+				if(alternateResidueCoords.get(' ') != null)
+					residueCoords.addAll(alternateResidueCoords.get(' '));
+				Residue alternateConformation = new Residue(residueAtoms, 
+						residueCoords, curResFullName, m);
+				alternateConformation.alternateCode = c;
+				
+					
+				try
+				{
+					boolean success = alternateConformation.assignTemplate();
+					if(!success)
+					{
+						System.out.println("Assignment failed: Residue "+curResFullName+", alt "+c);
+					}
+					else 
+					{
+						System.out.println("Assignment succeeded: Residue "+curResFullName+", alt "+c);
+						assignedOneAlternate = true;
+					}
+					m.addAlternate(curIndex, alternateConformation);
+					//library.addRotamer(residueIndex, alternateConformation.template.name, alternateConformation);
+					addRotamer(curIndex, positionSpecificRotamers,alternateConformation); 
+
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+
+
+			}
+			alternateAtoms.put(c, new ArrayList<>());
+			alternateResidueCoords.put(c,new ArrayList<>());
+		}
+		if(!assignedOneAlternate){
+			System.err.println("Could not assign any alternates of "+curResFullName+". Terminating.");
+			System.exit(-1);
 		}
 	}
 
