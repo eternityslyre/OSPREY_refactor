@@ -20,7 +20,7 @@ public class TestSparseGraphs extends TestCase {
         EnvironmentVars.assignTemplatesToStruct = true;
 
         
-        String[] testArgs = new String[]{"-c", "test/4NPD/KStar.cfg", "Dummy command", "test/4NPD/DEE.cfg", "test/4NPD/System.cfg"};
+        String[] testArgs = new String[]{"-c", "test/4NPD/KStar.cfg", "Dummy command", "test/4NPD/DEEFull.cfg", "test/4NPD/SystemFull.cfg"};
         cfp = new ConfigFileParser(testArgs);//args 1, 3+ are configuration files
         cfp.loadData();
     }
@@ -38,11 +38,14 @@ public class TestSparseGraphs extends TestCase {
     	EnergyFunction efunction = problem.fullConfE;
     	ConfSpace conformationSpace = problem.confSpace;
     	ResidueInteractionGraph graph = ResidueInteractionGraph.generateCompleteGraph(conformationSpace.numPos);
-    	graph.applyDistanceCutoff(4);
-    	graph.computeGraph(problem, efunction);
-    	graph.writeGraph(runName);
+    	//graph.applyEnergyCutoff(0.2, problem, efunction);
+    	graph.computeEdgeBounds(problem, efunction);
+    	graph.printStatistics();
+    	graph.applyEnergyCutoff(0.2, problem, efunction);
+    	//graph.writeGraph(runName);
     }
     
+    @Test
     public void testBranchDecomposition()
     {
         String runName = cfp.getParams().getValue("runName");

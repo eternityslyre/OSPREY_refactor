@@ -42,7 +42,10 @@ public class PDBRotamerReader {
 
 			while(curLine!=null){
 				
-
+				if(curResFullName.contains("PRO"))
+				{
+					System.out.println(curLine);
+				}
 				// First pad line to 80 characters
 				int lineLen = curLine.length();
 				for (int i=0; i < (80-lineLen); i++)
@@ -52,10 +55,6 @@ public class PDBRotamerReader {
 
 					char alt = curLine.charAt(16);//This specifies which alternate the atom is (space if not an alternate)
 					
-					if(curResFullName.contains("LEU A  19"))
-					{
-						System.out.println(curLine);
-					}
 
 					if(curAlt != ' ')
 					{
@@ -65,6 +64,11 @@ public class PDBRotamerReader {
 					int residueIndex = getResidueIndex(curLine);
 
 					if(!fullResName.equalsIgnoreCase(curResFullName) && !curResAtoms.isEmpty() ){
+						
+						if(curResFullName.contains("PRO"))
+						{
+							System.out.println(curLine);
+						}
 						if(readingAlternate)
 						{
 
@@ -123,8 +127,6 @@ public class PDBRotamerReader {
 		// and then storing each template at its appropriate position.
 		for(Integer residueIndex : positionSpecificRotamers.keySet())
 		{
-			if(residueIndex < 3)
-				System.out.println("Break.");
 			for(String resType : positionSpecificRotamers.get(residueIndex).keySet())
 			{
 				List<Residue> residues = positionSpecificRotamers.get(residueIndex).get(resType);
@@ -160,6 +162,8 @@ public class PDBRotamerReader {
 				try
 				{
 					boolean success = alternateConformation.assignTemplate();
+
+					alternateConformation.alternateCode = c;
 					if(!success)
 					{
 						System.out.println("Assignment failed: Residue "+curResFullName+", alt "+c);

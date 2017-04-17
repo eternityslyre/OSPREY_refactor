@@ -29,13 +29,17 @@ public class ResidueInteractionGraph {
 	
 	Set<Integer> vertices = new HashSet<>();
 	Map<Integer,Set<Integer>> adjacencyMatrix = new HashMap<>();
-	double distanceCutoff = 7; // distance cutoff, in angstroms
+	double distanceCutoff = Double.MAX_VALUE; // distance cutoff, in angstroms
 	double energyCutoff = 0; // energy cutoff, in kcal/mol
+	double[][] distanceBounds;
+	double[][] energyBounds;
 	
 	public ResidueInteractionGraph()
 	{
 		
 	}
+	
+
 	
 	public static ResidueInteractionGraph generateCompleteGraph(int numResidues)
 	{
@@ -53,13 +57,12 @@ public class ResidueInteractionGraph {
 	
 	public static ResidueInteractionGraph generateGraph(
 			Set<Integer> residues, Molecule m,
+			SearchProblem problem, EnergyFunction termE,
 			double distanceCutoff, double energyCutoff)
 	{
 		ResidueInteractionGraph graph = new ResidueInteractionGraph();
 		graph.setMutableResidues(residues);
-		graph.applyDistanceCutoff(distanceCutoff);
-		graph.applyEnergyCutoff(energyCutoff);
-		//graph.computeGraph(m);
+		graph.applyDistanceAndEnergyCutoff(distanceCutoff, energyCutoff, problem, termE);
 		
 		return graph;
 	}
@@ -95,28 +98,67 @@ public class ResidueInteractionGraph {
 				&& adjacencyMatrix.get(min).contains(max);
 	}
 	
-	public void applyDistanceCutoff(double cutoff)
+
+	public void applyDistanceCutoff(double cutoff, SearchProblem problem, EnergyFunction termE)
 	{
 		distanceCutoff = cutoff;
+		computeGraph(problem, termE);
 	}
 	
-	public void applyEnergyCutoff(double cutoff)
+	public void applyEnergyCutoff(double cutoff, SearchProblem problem, EnergyFunction termE)
 	{
-		energyCutoff = 0;
+		energyCutoff = cutoff;
+		computeGraph(problem, termE);
 	}
 	
-	public void computeGraph(SearchProblem problem, EnergyFunction termE)
+	public void applyDistanceAndEnergyCutoff(double dCutoff, double eCutoff,
+			SearchProblem problem, EnergyFunction termE)
+	{
+		energyCutoff = eCutoff;
+		distanceCutoff = dCutoff;
+		computeGraph(problem, termE);
+	}
+	
+	public void computeEdgeBounds(SearchProblem problem, EnergyFunction termE)
 	{
 		ConfSpace conformations = problem.confSpace;
+		int numResidues = vertices.size();
+		double[][] pairwiseEnergyMaxBounds = new double[numResidues][numResidues];
+		double[][] pairwiseEnergyMinBounds = new double[numResidues][numResidues];
+		distanceBounds = new double[numResidues][numResidues];
+		energyBounds = new double[numResidues][numResidues];
+		
+		for(int i = 0; i < pairwiseEnergyMaxBounds.length; i++)
+			for(int j = 0; j < pairwiseEnergyMaxBounds[i].length; j++)
+			{
+				pairwiseEnergyMaxBounds[i][j] = Double.NEGATIVE_INFINITY;
+				pairwiseEnergyMinBounds[i][j] = Double.POSITIVE_INFINITY;
+				distanceBounds[i][j] = Double.POSITIVE_INFINITY;
+			}
 		
 		for(int i =0; i < vertices.size(); i++)
 		{
 			Residue resi = conformations.posFlex.get(i).res;
-			double maxEnergy = Double.NEGATIVE_INFINITY;
-			double minEnergy = Double.POSITIVE_INFINITY;
-			double minDistance = Double.POSITIVE_INFINITY;
 			for(int j = 0; j < conformations.posFlex.get(i).RCs.size(); j++)
 			{
+				RCTuple conformationTupleTest = new RCTuple(i,j);
+				MoleculeModifierAndScorer mofTest = new MoleculeModifierAndScorer(termE,conformations,conformationTupleTest);
+
+	            DoubleMatrix1D bestDOFValsTest;
+
+	            if(mofTest.getNumDOFs()>0){//there are continuously flexible DOFs to minimize
+	                CCDMinimizer ccdMin = new CCDMinimizer(mofTest,true);
+	                bestDOFValsTest = ccdMin.minimize();
+	            }
+	            else//molecule is already in the right, rigid conformation
+	            	bestDOFValsTest = DoubleFactory1D.dense.make(0);
+
+
+	            double oneBodyEnergy = mofTest.getEnergyAndReset(bestDOFValsTest);
+				if(oneBodyEnergy > 100)
+				{
+					System.out.println("Clash?");
+				}
 				for(int k = i+1; k < vertices.size(); k++)
 				{
 					Residue resj = conformations.posFlex.get(k).res;
@@ -135,25 +177,52 @@ public class ResidueInteractionGraph {
 			                bestDOFVals = DoubleFactory1D.dense.make(0);
 
 
-			            double pairwiseEnergy = mof.getValue(bestDOFVals);
+			            double pairwiseEnergy = mof.getEnergyAndReset(bestDOFVals);
+						if(pairwiseEnergy > 100)
+						{
+							System.out.println("Clash?");
+						}
 			            double distance = resi.distanceTo(resj);
-			            minDistance = Math.min(distance, minDistance);
-			            maxEnergy = Math.max(pairwiseEnergy,maxEnergy);
-			            minEnergy = Math.min(pairwiseEnergy, minEnergy);
+			            distanceBounds[i][k] = Math.min(distance, distanceBounds[i][k]);
+			            pairwiseEnergyMaxBounds[i][k] = Math.max(pairwiseEnergy, pairwiseEnergyMaxBounds[i][k]);
+			            pairwiseEnergyMinBounds[i][k] = Math.min(pairwiseEnergy, pairwiseEnergyMaxBounds[i][k]);
 			            //System.out.println("Energy of ("+i+"-"+j+","+k+"-"+l+"):"+pairwiseEnergy);
 			            //System.out.println("Distance between ("+i+"-"+j+","+k+"-"+l+"):"+distance);
 			            	
 					}
-					double energyBounds = maxEnergy - minEnergy;
-					if(energyBounds < energyCutoff || minDistance > distanceCutoff)
-					{
-						System.out.println("Pruning edge ("+i+","+k+")");
-						pruneEdge(i,k);
-					}
+
 				}
 			}
 
 		}
+		
+		for(int i = 0; i < vertices.size(); i++)
+			for(int j = i+1; j < vertices.size(); j++)
+			{
+				energyBounds[i][j] = pairwiseEnergyMaxBounds[i][j] - pairwiseEnergyMinBounds[i][j];
+				energyBounds[j][i] = pairwiseEnergyMaxBounds[i][j] - pairwiseEnergyMinBounds[i][j];
+			}
+	}
+	
+	public void computeGraph(SearchProblem problem, EnergyFunction termE)
+	{
+		
+		computeEdgeBounds(problem, termE);
+		
+		int edgesPruned = 0;
+		for(int i = 0; i < vertices.size(); i++)
+			for(int j = i+1; j < vertices.size(); j++)
+			{
+				double minDistance = distanceBounds[i][j];
+				if(energyBounds[i][j] < energyCutoff || minDistance > distanceCutoff)
+				{
+					System.out.println("Pruning edge ("+i+","+j+"), energy "+energyBounds+", distance "+minDistance);
+					pruneEdge(i,j);
+					edgesPruned++;
+				}
+			}
+		
+		System.out.println("Edges pruned: "+edgesPruned);
 				
 	}
 	
@@ -206,6 +275,18 @@ public class ResidueInteractionGraph {
 			System.out.println("ERROR: An exception occurred while writing file");
 			System.exit(0);
 		}
+	}
+	
+	public void printStatistics()
+	{
+		System.out.println("==================== Edge Statistics =========================");
+		for(int i = 0; i < vertices.size(); i++)
+			for(int j = i+1; j < vertices.size(); j++)
+			{
+					System.out.println("Edge ("+i+","+j+"): energy "
+							+energyBounds[i][j]+", distance "+distanceBounds[i][j]);
+				
+			}
 	}
 
 }

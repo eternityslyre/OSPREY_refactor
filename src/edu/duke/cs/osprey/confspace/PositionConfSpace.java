@@ -103,14 +103,17 @@ public class PositionConfSpace implements Serializable {
             for(int dih=0; dih<numDihedrals; dih++)//get the first numDihedrals dihedrals
                 dofListForRot.add(resDOFs.get(dih));
                        
+
             
             for(ArrayList<int[]> pertState : pertStates){
             	
                 if(AAType.equalsIgnoreCase("PRO")){//special case: has ring pucker
                     //If PRO is set to be flexible we'll assume this includes pucker flexibility
                     //(the main flexibility of proline)
+                	System.err.println("You still need to write the proline alternate recognizer code correctly...");
+                	for(int rot=0; rot<numRot; rot++)
                     for( int puckerVal : new int[]{0,1} ){//create both puckers
-                        createRC(null, AAType, null, -1, contSCFlex, dofListForRot, puckerVal,
+                        createRC(null, AAType, templateLib.getTemplateForMutation(AAType, res, false), rot, contSCFlex, dofListForRot, puckerVal,
                                 strandDOFs, bfb, pertState, perts, pertIntervals, false);
                     }
                 }
@@ -181,8 +184,11 @@ public class PositionConfSpace implements Serializable {
         addDEEPerDOFs(pertState, perts, pertIntervals, dofListForRC, dofLB, dofUB);
         
         RC newRC = new RC(AAType, template, rot, dofListForRC, dofLB, dofUB, RCs.size());
+       
         if(template != null)
         newRC.altCode = template.altCodes[rot];
+        
+
         
         RCs.add(newRC);
         

@@ -32,6 +32,35 @@ public class RCTuple implements Serializable {
         this.RCs = RCs;
     }
     
+    public void addRCs(RCTuple source)
+    {
+    	for(int i = 0; i < pos.size(); i++)
+    	{
+    		if(source.pos.contains(pos.get(i)))
+    		{
+    			System.err.println("Error: Overwriting RCTuple position "+pos.get(i)+": "+RCs.get(i)+" with "+source.RCs.get(i)); 			
+    		}
+    	}
+    	pos.addAll(source.pos);
+    	RCs.addAll(source.RCs);
+    }
+    
+    public void addRCsAndOverwrite(RCTuple source)
+    {
+    	for(int i = 0; i < pos.size(); i++)
+    	{
+    		if(source.pos.contains(pos.get(i)))
+    		{
+    			RCs.set(i, source.RCs.get(i));    			
+    		}
+    		else
+    		{
+    			pos.add(source.pos.get(i));
+    			RCs.add(source.RCs.get(i));
+    		}
+    	}
+    }
+    
     
     //one-RC tuple
     public RCTuple(int pos1, int RC1){
