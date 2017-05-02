@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Set;
 import cern.colt.matrix.DoubleFactory1D;
 import cern.colt.matrix.DoubleMatrix1D;
 import edu.duke.cs.osprey.confspace.ConfSpace;
+import edu.duke.cs.osprey.confspace.PositionConfSpace;
 import edu.duke.cs.osprey.confspace.RC;
 import edu.duke.cs.osprey.confspace.RCTuple;
 import edu.duke.cs.osprey.confspace.SearchProblem;
@@ -27,8 +29,9 @@ import edu.duke.cs.osprey.structure.Residue;
 
 public class ResidueInteractionGraph {
 	
-	Set<Integer> vertices = new HashSet<>();
+	ArrayList<Integer> vertices = new ArrayList<>();
 	Map<Integer,Set<Integer>> adjacencyMatrix = new HashMap<>();
+	Map<Integer, Integer> internalMap = new HashMap<>();
 	double distanceCutoff = Double.MAX_VALUE; // distance cutoff, in angstroms
 	double energyCutoff = 0; // energy cutoff, in kcal/mol
 	double[][] distanceBounds;
@@ -39,7 +42,38 @@ public class ResidueInteractionGraph {
 		
 	}
 	
-
+	public Set<Integer> getVertices()
+	{
+		return new HashSet<Integer>(vertices);
+	}
+	
+	private int translateToInternalIndex(int index)
+	{
+		return internalMap.get(index);
+	}
+	public double getEnergyBound(int v1, int v2)
+	{
+		return energyBounds[translateToInternalIndex(v1)][translateToInternalIndex(v2)];
+	}
+	
+	public double getDistanceBound(int v1, int v2)
+	{
+		return distanceBounds[translateToInternalIndex(v1)][translateToInternalIndex(v2)];
+	}
+	
+	public void updateEnergyBound(int v1, int v2, double energy)
+	{
+		int internalV1 = translateToInternalIndex(v1);
+		int internalV2 = translateToInternalIndex(v2);
+		energyBounds[internalV1][internalV2] = Math.max(energy, energyBounds[internalV1][internalV2]);
+	}
+	
+	public void updateDistanceBound(int v1, int v2, double distance)
+	{
+		int internalV1 = translateToInternalIndex(v1);
+		int internalV2 = translateToInternalIndex(v2);
+		distanceBounds[internalV1][internalV2] = Math.min(distance, distanceBounds[internalV1][internalV2]);
+	}
 	
 	public static ResidueInteractionGraph generateCompleteGraph(int numResidues)
 	{
@@ -56,19 +90,41 @@ public class ResidueInteractionGraph {
 	}
 	
 	public static ResidueInteractionGraph generateGraph(
-			Set<Integer> residues, Molecule m,
+			ArrayList<Residue> residues, Molecule m,
 			SearchProblem problem, EnergyFunction termE,
 			double distanceCutoff, double energyCutoff)
 	{
 		ResidueInteractionGraph graph = new ResidueInteractionGraph();
-		graph.setMutableResidues(residues);
+		Set<Integer> residueIndexSet = createResidueIndexSet(problem);
+		graph.setMutableResidues(residueIndexSet);
 		graph.applyDistanceAndEnergyCutoff(distanceCutoff, energyCutoff, problem, termE);
 		
 		return graph;
 	}
 	
+	public static ResidueInteractionGraph generateGraph(
+			ArrayList<Residue> residues, Molecule m,
+			SearchProblem problem, EnergyFunction termE)
+	{
+		ResidueInteractionGraph graph = new ResidueInteractionGraph();
+		Set<Integer> residueIndexSet = createResidueIndexSet(problem);
+		graph.setMutableResidues(residueIndexSet);
+		
+		return graph;
+	}
+	
+	private static Set<Integer> createResidueIndexSet (SearchProblem problem) {
+		Set<Integer> residueIndexSet = new HashSet<>();
+		for(PositionConfSpace space: problem.confSpace.posFlex)
+		{
+			residueIndexSet.add(space.res.getPDBIndex());
+		}
+		return residueIndexSet;
+	}
+
 	public void addVertex(int vertex)
 	{
+		internalMap.put(vertex, vertices.size());
 		vertices.add(vertex);
 	}
 	
@@ -155,10 +211,7 @@ public class ResidueInteractionGraph {
 
 
 	            double oneBodyEnergy = mofTest.getEnergyAndReset(bestDOFValsTest);
-				if(oneBodyEnergy > 100)
-				{
-					System.out.println("Clash?");
-				}
+
 				for(int k = i+1; k < vertices.size(); k++)
 				{
 					Residue resj = conformations.posFlex.get(k).res;
@@ -184,6 +237,7 @@ public class ResidueInteractionGraph {
 						}
 			            double distance = resi.distanceTo(resj);
 			            distanceBounds[i][k] = Math.min(distance, distanceBounds[i][k]);
+			            updateDistanceBound(vertices.get(i),vertices.get(k),distance);
 			            pairwiseEnergyMaxBounds[i][k] = Math.max(pairwiseEnergy, pairwiseEnergyMaxBounds[i][k]);
 			            pairwiseEnergyMinBounds[i][k] = Math.min(pairwiseEnergy, pairwiseEnergyMaxBounds[i][k]);
 			            //System.out.println("Energy of ("+i+"-"+j+","+k+"-"+l+"):"+pairwiseEnergy);
@@ -199,8 +253,8 @@ public class ResidueInteractionGraph {
 		for(int i = 0; i < vertices.size(); i++)
 			for(int j = i+1; j < vertices.size(); j++)
 			{
-				energyBounds[i][j] = pairwiseEnergyMaxBounds[i][j] - pairwiseEnergyMinBounds[i][j];
-				energyBounds[j][i] = pairwiseEnergyMaxBounds[i][j] - pairwiseEnergyMinBounds[i][j];
+				updateEnergyBound(vertices.get(i),vertices.get(j), pairwiseEnergyMaxBounds[i][j] - pairwiseEnergyMinBounds[i][j]);
+				updateEnergyBound(vertices.get(j),vertices.get(i), pairwiseEnergyMaxBounds[i][j] - pairwiseEnergyMinBounds[i][j]);
 			}
 	}
 	
@@ -216,7 +270,7 @@ public class ResidueInteractionGraph {
 				double minDistance = distanceBounds[i][j];
 				if(energyBounds[i][j] < energyCutoff || minDistance > distanceCutoff)
 				{
-					System.out.println("Pruning edge ("+i+","+j+"), energy "+energyBounds+", distance "+minDistance);
+					System.out.println("Pruning edge ("+i+","+j+"), energy "+energyBounds[i][j]+", distance "+minDistance);
 					pruneEdge(i,j);
 					edgesPruned++;
 				}
