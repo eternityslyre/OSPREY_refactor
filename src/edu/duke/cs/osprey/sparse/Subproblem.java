@@ -1,55 +1,79 @@
 package edu.duke.cs.osprey.sparse;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 import edu.duke.cs.osprey.confspace.ConfSpace;
+import edu.duke.cs.osprey.confspace.ConfSpaceConstrainer;
+import edu.duke.cs.osprey.confspace.RC;
 import edu.duke.cs.osprey.confspace.RCTuple;
 import edu.duke.cs.osprey.confspace.SearchProblem;
 
 public class Subproblem {
-	private Subproblem leftChild;
-	private Subproblem rightChild;
-	private Iterator<RCTuple> solutionEnumerator;
+	private Set<Integer> LSet;
 	private Set<Integer> lambdaSet;
-	private Set<Integer> L_Set;
-	private Solution nextBestSolution;
-	private List<Solution> solutions;
+	private Set<Integer> MSet;
+	List<ConformationProcessor> processors;
+	public Subproblem leftSubproblem;
+	public Subproblem rightSubproblem;
+	private ConfSpace localConfSpace;
 	
-	public Solution nextBestSolution()
+	public Subproblem (ConfSpace superSpace, TreeNode sparseTree, RCTuple initialConf) {
+		processors = new ArrayList<>();
+		localConfSpace = ConfSpaceConstrainer.constrainConfSpace(initialConf, superSpace);
+	}
+
+
+	
+	public void addConformationProcessor(ConformationProcessor processor)
 	{
-		if(nextBestSolution == null)
+		processors.add(processor);
+	}
+
+	public BigInteger getTotalConformations()
+	{
+		return localConfSpace.getNumConformations();
+	}
+
+	public void preprocess () {
+		int[] currentConf = new int[localConfSpace.numPos];
+		recursivelyProcessTuples(0,currentConf);
+	}
+
+
+
+	private void recursivelyProcessTuples (int position, int[] currentConf) {
+		if(position >= localConfSpace.numPos)
 		{
-			nextBestSolution = new Solution(solutionEnumerator.next());
+			//System.out.println("Process conformation:"+printConf(currentConf));
+			RCTuple confTuple = new RCTuple(currentConf);
+			for(ConformationProcessor proc : processors)
+			{
+				proc.processConformation(confTuple);
+			}
+			return;
 		}
-		Solution output = nextBestSolution.copy();
-		updateSolution(nextBestSolution);
-		solutions.add(nextBestSolution);
+		ArrayList<RC> RCList = localConfSpace.posFlex.get(position).RCs;
+		for(int i = 0; i < RCList.size(); i++)
+		{
+			currentConf[position] = i;
+			recursivelyProcessTuples(position+1, currentConf);
+		}
+	}
+
+
+
+	private String printConf (int[] currentConf) {
+		String output = "(";
+		for(int i = 0; i < currentConf.length-1; i++)
+		{
+			output+=i+":"+currentConf[i]+", ";
+		}
+		output = output+(currentConf.length-1)+":"+currentConf[currentConf.length-1]+")";
 		return output;
-	}
-	
-	public boolean hasMoreSolutions()
-	{
-		return nextBestSolution != null || solutionEnumerator.hasNext();
-	}
-
-	private void updateSolution (Solution nextBestCombination) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	public static Subproblem createSubproblem(SearchProblem fullProblem, RCTuple initialSolution)
-	{
-		SearchProblem subSearchProblem = new SearchProblem(fullProblem);
-		constrainConformationSpace(initialSolution,subSearchProblem.confSpace);
-		return null;
-	}
-
-	private static void constrainConformationSpace (RCTuple initialSolution, ConfSpace confSpace) {
-		// TODO Auto-generated method stub
-		//SearchProblem constrainedSearchProblem = new SearchProblem();
-		
 	}
 
 }

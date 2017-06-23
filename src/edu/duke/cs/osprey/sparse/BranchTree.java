@@ -50,7 +50,7 @@ public class BranchTree {
 			str = readLine(bufread,fName); //read node line
 			
 			int tnName = new Integer(getToken(str,1)).intValue();
-			//int tnEdges = new Integer(getToken(str,2)).intValue();
+			int tnEdges = new Integer(getToken(str,2)).intValue();
 			boolean tnIsLeaf = new Boolean(getToken(str,3)).booleanValue();
 			
 			if (tnIsLeaf) { //leaf node

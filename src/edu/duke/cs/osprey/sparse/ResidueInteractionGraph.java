@@ -89,6 +89,15 @@ public class ResidueInteractionGraph {
 		return outputGraph;
 	}
 	
+	public static ResidueInteractionGraph generateCompleteGraph(SearchProblem problem)
+	{
+		ResidueInteractionGraph graph = new ResidueInteractionGraph();
+		Set<Integer> residueIndexSet = createResidueIndexSet(problem);
+		graph.setMutableResidues(residueIndexSet);
+		
+		return graph;
+	}
+	
 	public static ResidueInteractionGraph generateGraph(
 			ArrayList<Residue> residues, Molecule m,
 			SearchProblem problem, EnergyFunction termE,
@@ -233,15 +242,15 @@ public class ResidueInteractionGraph {
 			            double pairwiseEnergy = mof.getEnergyAndReset(bestDOFVals);
 						if(pairwiseEnergy > 100)
 						{
-							System.out.println("Clash?");
+							//System.out.println("Clash?");
 						}
 			            double distance = resi.distanceTo(resj);
 			            distanceBounds[i][k] = Math.min(distance, distanceBounds[i][k]);
 			            updateDistanceBound(vertices.get(i),vertices.get(k),distance);
 			            pairwiseEnergyMaxBounds[i][k] = Math.max(pairwiseEnergy, pairwiseEnergyMaxBounds[i][k]);
 			            pairwiseEnergyMinBounds[i][k] = Math.min(pairwiseEnergy, pairwiseEnergyMaxBounds[i][k]);
-			            //System.out.println("Energy of ("+i+"-"+j+","+k+"-"+l+"):"+pairwiseEnergy);
-			            //System.out.println("Distance between ("+i+"-"+j+","+k+"-"+l+"):"+distance);
+//			            System.out.println("Energy of ("+i+"-"+j+","+k+"-"+l+"):"+pairwiseEnergy);
+//			            System.out.println("Distance between ("+i+"-"+j+","+k+"-"+l+"):"+distance);
 			            	
 					}
 
@@ -315,7 +324,7 @@ public class ResidueInteractionGraph {
 			{
 				for(Integer j : adjacencyMatrix.get(i))
 				{
-					printStream.println("("+i+","+j+")");
+					printStream.println(i+","+j);
 				}
 			}
 			printStream.close();

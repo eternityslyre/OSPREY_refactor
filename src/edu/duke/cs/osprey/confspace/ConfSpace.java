@@ -435,6 +435,32 @@ public class ConfSpace implements Serializable {
 		}
 		return count;
 	}
+	
+	/***
+	 * Create a copy of the ConfSpace for subspace construction.
+	 * @param source
+	 */
+	public static ConfSpace copyConfSpace(ConfSpace source){
+		ConfSpace copy = new ConfSpace();
+		copy.m = source.m;
+		for(int i = 0; i < source.numPos; i++)
+		{
+			copy.confDOFs.add(source.confDOFs.get(i));
+			copy.mutDOFs.add(source.mutDOFs.get(i));
+			copy.posFlex.add(source.posFlex.get(i));
+		}
+		copy.numPos = source.numPos;
+		copy.useEllipses = source.useEllipses;
+		return copy;
+	}
+	
+	private ConfSpace()
+	{
+		confDOFs = new ArrayList<>();
+		mutDOFs = new ArrayList<>();
+		posFlex = new ArrayList<>();
+	}
+
     
     
     /*DoubleMatrix1D[] convertConfToDOFBounds(int[] conf){

@@ -6,7 +6,7 @@ package edu.duke.cs.osprey.confspace;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-
+import java.util.Collections;
 import cern.colt.matrix.DoubleFactory1D;
 import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix1D;
@@ -110,7 +110,6 @@ public class PositionConfSpace implements Serializable {
                 if(AAType.equalsIgnoreCase("PRO")){//special case: has ring pucker
                     //If PRO is set to be flexible we'll assume this includes pucker flexibility
                     //(the main flexibility of proline)
-                	System.err.println("You still need to write the proline alternate recognizer code correctly...");
                 	for(int rot=0; rot<numRot; rot++)
                     for( int puckerVal : new int[]{0,1} ){//create both puckers
                         createRC(null, AAType, templateLib.getTemplateForMutation(AAType, res, false), rot, contSCFlex, dofListForRot, puckerVal,
@@ -185,8 +184,8 @@ public class PositionConfSpace implements Serializable {
         
         RC newRC = new RC(AAType, template, rot, dofListForRC, dofLB, dofUB, RCs.size());
        
-        if(template != null)
-        newRC.altCode = template.altCodes[rot];
+        if(template != null && template.altCodes.length > rot)
+        	newRC.altCode = template.altCodes[rot];
         
 
         
@@ -363,6 +362,21 @@ public class PositionConfSpace implements Serializable {
     public ArrayList<EllipseCoordDOF> getEllipsoidalArray() {
     	return this.ellipsoidalDOFs;
     }
+
+    private PositionConfSpace()
+    {
+    	
+    }
+
+	public PositionConfSpace copy () 
+	{
+		PositionConfSpace output = new PositionConfSpace();
+		output.designIndex = designIndex;
+		output.res = res;
+		Collections.copy(RCs, output.RCs);
+		Collections.copy(wtRCs, output.wtRCs);
+		return output;
+	}
 
     
 }

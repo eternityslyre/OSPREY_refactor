@@ -69,5 +69,16 @@ public class RC implements Serializable {
         return false;
     }
     
+    public boolean equals(Object o)
+    {
+    	if(!RC.class.isInstance(o))
+    		return false;
+    	RC b = (RC) o;
+    	return AAType.equals(b.AAType)
+    			&& rotNum == b.rotNum
+    			&& RCIndex == b.RCIndex;
+    			
+    }
+    
     
 }
