@@ -16,13 +16,12 @@ public class Subproblem {
 	private Set<Integer> LSet;
 	private Set<Integer> lambdaSet;
 	private Set<Integer> MSet;
-	List<ConformationProcessor> processors;
+	List<ConformationProcessor> processors = new ArrayList<>();
 	public Subproblem leftSubproblem;
 	public Subproblem rightSubproblem;
 	private ConfSpace localConfSpace;
 	
 	public Subproblem (ConfSpace superSpace, TreeNode sparseTree, RCTuple initialConf) {
-		processors = new ArrayList<>();
 		localConfSpace = ConfSpaceConstrainer.constrainConfSpace(initialConf, superSpace);
 	}
 
